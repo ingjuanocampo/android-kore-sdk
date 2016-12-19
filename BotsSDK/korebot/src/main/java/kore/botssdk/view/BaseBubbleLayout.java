@@ -9,20 +9,12 @@ import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
-import android.text.style.BackgroundColorSpan;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-
 import kore.botssdk.R;
-import kore.botssdk.adapter.BotListCustomAdapter;
 import kore.botssdk.application.AppControl;
 import kore.botssdk.models.BaseBotMessage;
 import kore.botssdk.models.BotRequest;
@@ -88,9 +80,6 @@ public abstract class BaseBubbleLayout extends ViewGroup {
     protected TextMediaLayout bubbleTextMediaLayout;
     protected TextView botContentTextView;
     protected HeaderLayout headerLayout;
-    protected BotCustomListView bcl;
-
-
     protected int position;
     protected int[] dimens;
     protected int textColor;
@@ -116,6 +105,12 @@ public abstract class BaseBubbleLayout extends ViewGroup {
         init();
     }
 
+    public BaseBubbleLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
+        this.context = getContext();
+        init();
+    }
+
     private void init() {
         initiliazeCoordinates();
         setWillNotDraw(false);
@@ -124,12 +119,6 @@ public abstract class BaseBubbleLayout extends ViewGroup {
         setPaintColor(paint);
         paint.setAntiAlias(true);
         viewAddition();
-    }
-
-    public BaseBubbleLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-        this.context = getContext();
-        init();
     }
 
     private void initiliazeCoordinates() {
@@ -201,14 +190,6 @@ public abstract class BaseBubbleLayout extends ViewGroup {
         bubbleTextMediaLayout.gravity = textMediaLayoutGravity;
         addView(bubbleTextMediaLayout);
 
-        bcl = new BotCustomListView(getContext());
-        BotListCustomAdapter.isInExpandedMode = false;
-        RelativeLayout.LayoutParams txtVwParams1 = new RelativeLayout.LayoutParams(
-                LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-        bcl.setLayoutParams(txtVwParams1);
-        bcl.setBackgroundColor(Color.WHITE);
-        bcl.setId(TextMediaLayout.LIST_ID);
-        addView(bcl);
     }
 
     protected void setInivisiblePaintColor(Paint paint) {
@@ -279,13 +260,14 @@ public abstract class BaseBubbleLayout extends ViewGroup {
         setPaintColor(paint);
         paint.setStrokeWidth(dp1);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
+
     }
 
     protected void drawCurve(Canvas canvas) {
         Bitmap curveBitmap = formCurveBitmap(senderImageRadius, bubbleCornerRadius);
 
         int x = 0;
-        int y = bubbleTextMediaLayout.getBottom() + bcl.getBottom() + BUBBLE_CONTENT_BOTTOM_MARGIN + 2 - senderImageRadius;
+        int y = bubbleTextMediaLayout.getBottom() + BUBBLE_CONTENT_BOTTOM_MARGIN + 2 - senderImageRadius;
 
         if(isLeftSide()) {
             x = (int) (bubbleTextMediaLayout.getLeft() - BUBBLE_CONTENT_LEFT_MARGIN - 6 * dp1 - senderImageRadius + dp1/3);
@@ -328,7 +310,7 @@ public abstract class BaseBubbleLayout extends ViewGroup {
         int dimen[] = textMediaDimen;
         int rectLeft = bubbleTextMediaLayout.getLeft() - BUBBLE_CONTENT_LEFT_MARGIN;
         int rectTop = bubbleTextMediaLayout.getTop() - (BUBBLE_CONTENT_TOP_MARGIN);// + BUBBLE_FORWARD_LAYOUT_HEIGHT_CONSIDERATION_FOR_PAINT);
-        int rectBottom = bubbleTextMediaLayout.getBottom() + bcl.getHeight() + BUBBLE_CONTENT_BOTTOM_MARGIN;
+        int rectBottom = bubbleTextMediaLayout.getBottom() + BUBBLE_CONTENT_BOTTOM_MARGIN;
         int rectRight = bubbleTextMediaLayout.getRight() + BUBBLE_CONTENT_RIGHT_MARGIN;
 
         rect.set(rectLeft, rectTop, rectRight, rectBottom);
@@ -422,7 +404,7 @@ public abstract class BaseBubbleLayout extends ViewGroup {
      */
     protected void initializeBubbleContentDimen() {
         //STEP 1: Retrieve TextMedia Layout dimensional value... and also FooterLayoutDimentionalValue
-        textMediaDimen =  new int[]{bubbleTextMediaLayout.getMeasuredWidth(), bubbleTextMediaLayout.getMeasuredHeight()+bcl.getMeasuredHeight()/*+list.getMeasuredHeight()*/} ;//bubbleTextMediaLayout.getTextMediaLayoutDimens(bubbleMeta.getComponentMeta(), dimens);
+        textMediaDimen =  new int[]{bubbleTextMediaLayout.getMeasuredWidth(), bubbleTextMediaLayout.getMeasuredHeight()} ;//bubbleTextMediaLayout.getTextMediaLayoutDimens(bubbleMeta.getComponentMeta(), dimens);
 
         //STEP 2: Store additional informations required in further stage of UI rendering...
         maxBubbleDimen = new int[2];
