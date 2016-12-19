@@ -3,15 +3,12 @@ package kore.botssdk.view;
 import android.content.Context;
 import android.util.AttributeSet;
 
-import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collections;
 
 import kore.botssdk.R;
 import kore.botssdk.models.BaseBotMessage;
 import kore.botssdk.models.BotResponse;
-import kore.botssdk.models.BotResponseMessage;
-import kore.botssdk.utils.Contants;
 import kore.botssdk.utils.DateUtils;
 import kore.botssdk.view.viewUtils.LayoutUtils;
 import kore.botssdk.view.viewUtils.MeasureUtils;
