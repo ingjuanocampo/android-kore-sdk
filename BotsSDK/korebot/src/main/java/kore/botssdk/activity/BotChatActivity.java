@@ -10,6 +10,9 @@ import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
 import com.google.gson.Gson;
+import com.octo.android.robospice.SpiceManager;
+import com.octo.android.robospice.persistence.exception.SpiceException;
+import com.octo.android.robospice.request.listener.RequestListener;
 
 import java.util.Date;
 
@@ -22,6 +25,8 @@ import kore.botssdk.listener.BotContentFragmentUpdate;
 import kore.botssdk.listener.ComposeFooterUpdate;
 import kore.botssdk.models.BotInfoModel;
 import kore.botssdk.models.BotRequest;
+import kore.botssdk.net.BotDemoRestService;
+import kore.botssdk.net.JWTGrantRequest;
 import kore.botssdk.net.RestResponse;
 import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.utils.BotSharedPreferences;
@@ -57,6 +62,7 @@ public class BotChatActivity extends AppCompatActivity implements SocketConnecti
 
     BotContentFragmentUpdate botContentFragmentUpdate;
     ComposeFooterUpdate composeFooterUpdate;
+    private SpiceManager spiceManagerForJWT = new SpiceManager(BotDemoRestService.class);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,17 +90,28 @@ public class BotChatActivity extends AppCompatActivity implements SocketConnecti
 
         botClient = new BotClient(this);
 
-        if (loginMode.equalsIgnoreCase(Contants.NORMAL_FLOW)) {
-            connectToWebSocket();
-        } else {
+//        if (loginMode.equalsIgnoreCase(Contants.NORMAL_FLOW)) {
+//            connectToWebSocket();
+//        } else {
             connectToWebSocketAnonymous();
-        }
+//        }
     }
 
     @Override
     protected void onDestroy() {
         botClient.disconnect();
         super.onDestroy();
+    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        spiceManagerForJWT.start(getApplicationContext());
+    }
+
+    @Override
+    protected void onStop() {
+        spiceManagerForJWT.shouldStop();
+        super.onStop();
     }
 
     private void getBundleInfo() {
@@ -163,9 +180,7 @@ public class BotChatActivity extends AppCompatActivity implements SocketConnecti
     }
 
     private void connectToWebSocketAnonymous() {
-
-        botClient.connectAsAnonymousUser(SDKConfiguration.Client.demo_client_id,chatBot,taskBotId, this);
-
+        getJWTToken();
         updateTitleBar(SocketConnectionEventStates.CONNECTING);
     }
 
@@ -261,5 +276,22 @@ public class BotChatActivity extends AppCompatActivity implements SocketConnecti
 
     public void setComposeFooterUpdate(ComposeFooterUpdate composeFooterUpdate) {
         this.composeFooterUpdate = composeFooterUpdate;
+    }
+
+    private void getJWTToken(){
+        JWTGrantRequest request = new JWTGrantRequest(SDKConfiguration.Client.demo_client_id,
+                SDKConfiguration.Client.clientSecret,SDKConfiguration.Client.identity,SDKConfiguration.Server.IS_ANONYMOUS_USER);
+        spiceManagerForJWT.execute(request, new RequestListener<RestResponse.JWTTokenResponse>() {
+            @Override
+            public void onRequestFailure(SpiceException e) {
+
+            }
+
+            @Override
+            public void onRequestSuccess(RestResponse.JWTTokenResponse jwt) {
+                botClient.connectAsAnonymousUser(jwt.getJwt(),
+                        SDKConfiguration.Client.demo_client_id,chatBot,taskBotId, BotChatActivity.this);
+            }
+        });
     }
 }
