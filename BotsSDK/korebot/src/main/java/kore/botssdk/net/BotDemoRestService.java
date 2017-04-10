@@ -32,7 +32,7 @@ public class BotDemoRestService extends RetrofitGsonSpiceService {
 
     @Override
     protected String getServerUrl() {
-        return SDKConfiguration.Demo.JWT_SERVER_URL;
+        return SDKConfiguration.JWTServer.JWT_SERVER_URL;
     }
 
     @Override

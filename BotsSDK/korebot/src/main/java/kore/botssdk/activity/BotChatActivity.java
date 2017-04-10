@@ -117,13 +117,13 @@ public class BotChatActivity extends AppCompatActivity implements SocketConnecti
     private void getBundleInfo() {
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            chatBot = bundle.getString(BundleUtils.CHATBOT, "");
-            taskBotId = bundle.getString(BundleUtils.TASKBOTID, "");
+            chatBot = bundle.getString(BundleUtils.BOT_NAME, "");
+            taskBotId = bundle.getString(BundleUtils.BOT_ID, "");
             loginMode = bundle.getString(BundleUtils.LOGIN_MODE, Contants.NORMAL_FLOW);
         }
 //        if(loginMode.equalsIgnoreCase(Contants.ANONYMOUS_FLOW)){
-            chatBot = SDKConfiguration.Client.chatBotName;
-            taskBotId = SDKConfiguration.Client.taskBotId;
+            chatBot = SDKConfiguration.Client.bot_name;
+            taskBotId = SDKConfiguration.Client.bot_id;
 //        }
     }
 
@@ -172,12 +172,12 @@ public class BotChatActivity extends AppCompatActivity implements SocketConnecti
         }
     }
 
-    private void connectToWebSocket() {
+    /*private void connectToWebSocket() {
         String accessToken = BotSharedPreferences.getAccessTokenFromPreferences(getApplicationContext());
         botClient.connectAsAuthenticatedUser(accessToken, chatBot,taskBotId, this);
 
         updateTitleBar(SocketConnectionEventStates.CONNECTING);
-    }
+    }*/
 
     private void connectToWebSocketAnonymous() {
         getJWTToken();
@@ -279,8 +279,8 @@ public class BotChatActivity extends AppCompatActivity implements SocketConnecti
     }
 
     private void getJWTToken(){
-        JWTGrantRequest request = new JWTGrantRequest(SDKConfiguration.Client.demo_client_id,
-                SDKConfiguration.Client.clientSecret,SDKConfiguration.Client.identity,SDKConfiguration.Server.IS_ANONYMOUS_USER);
+        JWTGrantRequest request = new JWTGrantRequest(SDKConfiguration.Client.client_id,
+                SDKConfiguration.Client.client_secret,SDKConfiguration.Client.identity,SDKConfiguration.Server.IS_ANONYMOUS_USER);
         spiceManagerForJWT.execute(request, new RequestListener<RestResponse.JWTTokenResponse>() {
             @Override
             public void onRequestFailure(SpiceException e) {
@@ -290,7 +290,7 @@ public class BotChatActivity extends AppCompatActivity implements SocketConnecti
             @Override
             public void onRequestSuccess(RestResponse.JWTTokenResponse jwt) {
                 botClient.connectAsAnonymousUser(jwt.getJwt(),
-                        SDKConfiguration.Client.demo_client_id,chatBot,taskBotId, BotChatActivity.this);
+                        SDKConfiguration.Client.client_id,chatBot,taskBotId, BotChatActivity.this);
             }
         });
     }

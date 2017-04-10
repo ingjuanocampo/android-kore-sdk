@@ -53,7 +53,7 @@ public class BotHomeActivity extends AppCompatActivity {
 
     private void findViews() {
         launchBotBtn = (Button) findViewById(R.id.launchBotBtn);
-        launchBotBtn.setText("Talk to "+ SDKConfiguration.Client.chatBotName);
+        launchBotBtn.setText("Talk to "+ SDKConfiguration.Client.bot_name);
         botListView = (ListView) findViewById(R.id.botListView);
     }
 
@@ -90,9 +90,6 @@ public class BotHomeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (loginMode.equalsIgnoreCase(Contants.NORMAL_FLOW)) {
-//            getAllBotsFromMarketStream();
-        }
     }
 
     @Override
@@ -127,8 +124,8 @@ public class BotHomeActivity extends AppCompatActivity {
             Intent botChatActivityIntent = new Intent(getApplicationContext(), BotChatActivity.class);
 
             Bundle botChatActivityBundle = new Bundle();
-            botChatActivityBundle.putString(BundleUtils.CHATBOT, marketStreams.getName());
-            botChatActivityBundle.putString(BundleUtils.TASKBOTID, marketStreams.get_id());
+            botChatActivityBundle.putString(BundleUtils.BOT_NAME, marketStreams.getName());
+            botChatActivityBundle.putString(BundleUtils.BOT_ID, marketStreams.get_id());
             botChatActivityBundle.putBoolean(BundleUtils.SHOW_PROFILE_PIC, true);
 
             botChatActivityIntent.putExtras(botChatActivityBundle);
@@ -141,7 +138,7 @@ public class BotHomeActivity extends AppCompatActivity {
      * END of : Listeners
      */
 
-    private void getAllBotsFromMarketStream() {
+   /* private void getAllBotsFromMarketStream() {
 
         String userId = BotSharedPreferences.getUserIdFromPreferences(getApplicationContext());
         String accessToken = BotSharedPreferences.getAccessTokenFromPreferences(getApplicationContext());
@@ -162,5 +159,5 @@ public class BotHomeActivity extends AppCompatActivity {
             }
         });
 
-    }
+    }*/
 }

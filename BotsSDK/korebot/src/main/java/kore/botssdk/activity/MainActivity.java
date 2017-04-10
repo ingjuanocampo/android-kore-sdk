@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         isAnonymous = SDKConfiguration.Server.IS_ANONYMOUS_USER;
         findViewsAndSetListeners();
-        clearPref();
+//        clearPref();
         getSupportActionBar().setSubtitle("Login");
     }
 
@@ -54,19 +54,19 @@ public class MainActivity extends AppCompatActivity {
         else anonymousLoginBtn.setVisibility(View.GONE);
     }
 
-    private void clearPref() {
+    /*private void clearPref() {
         BotSharedPreferences.clearPreferences(MainActivity.this);
-    }
+    }*/
 
-    private boolean isAlreadyLoggedIn() {
+   /* private boolean isAlreadyLoggedIn() {
         return BotSharedPreferences.getAccessTokenFromPreferences(getApplicationContext()) != null
                 && BotSharedPreferences.getUserIdFromPreferences(getApplicationContext()) != null;
-    }
+    }*/
 
     @Override
     protected void onResume() {
         super.onResume();
-        clearPref();
+//        clearPref();
     }
 
     /**
@@ -83,13 +83,9 @@ public class MainActivity extends AppCompatActivity {
     View.OnClickListener normalLoginBtnOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            BotSharedPreferences.clearPreferences(MainActivity.this);
-            if (isAlreadyLoggedIn()) {
-                launchBotHomeActivity(false);
-                finish();
-            } else {
-                saveToPrefAndLaunch(false);
-            }
+//            BotSharedPreferences.clearPreferences(MainActivity.this);
+            launchBotHomeActivity(false);
+            finish();
         }
     };
 
@@ -112,13 +108,13 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void saveToPrefAndLaunch(boolean isAnonymous) {
-        boolean successfullySaved = BotSharedPreferences.saveCredsToPreferences(MainActivity.this, SDKConfiguration.Client.demo_user_id, SDKConfiguration.Client.demo_auth_token);
+    /*private void saveToPrefAndLaunch(boolean isAnonymous) {
+        boolean successfullySaved = BotSharedPreferences.saveCredsToPreferences(MainActivity.this, SDKConfiguration.Client.user_id, SDKConfiguration.Client.auth_token);
 
         if (successfullySaved) {
             launchBotHomeActivity(isAnonymous);
         }
-    }
+    }*/
 
     /**
      * End of : Utility Methods
