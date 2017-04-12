@@ -79,34 +79,15 @@ public static final String JWT_SERVER_URL = "<jwt-token-server-url>";
 ```
 BotClient botClient = new BotClient(this);
 ```
-#### 2. Implement SocketConnectionListener to receive callback
-```
-SocketConnectionListener socketConnectionListener = new SocketConnectionListener() {
-    @Override
-    public void onOpen() {
-    }
-    @Override
-    public void onClose(WebSocket.WebSocketConnectionObserver.WebSocketCloseNotification code, String reason) {
-    }
-    @Override
-    public void onTextMessage(String payload) {
-    }
-    @Override
-    public void onRawTextMessage(byte[] payload) {
-    }
-    @Override
-    public void onBinaryMessage(byte[] payload) {
-    }
-};
-```
 
-#### 3. JWT genration
+#### 2. JWT genration
     a. You need to have secure token service hosted in your environment which returns the JWT token.
     b. Generate JWT in your enviornment.
 
 NOTE: Please refer about JWT signing and verification at - https://developer.kore.com/docs/bots/kore-web-sdk/
 
-#### 4. Connect with JWT
+#### 3. Connect with JWT
+```
     private void getJWTToken(){
         
         JWTGrantRequest request = new JWTGrantRequest(SDKConfiguration.Config.demo_client_id,
@@ -123,12 +104,13 @@ NOTE: Please refer about JWT signing and verification at - https://developer.kor
             }
         });
     }
+```
 
-#### 6. Send message
+#### 4. Send message
 ```
 botClient.sendMessage("Tweet hello")
 ```
-#### 7. Listen to events in socketConnectionListener
+#### 5. Listen to events in socketConnectionListener
 ```
 @Override
 public void onOpen() {
@@ -147,17 +129,17 @@ public void onBinaryMessage(byte[] payload) {
 }
 ```
 
-#### 8. Subscribe to push notifications
+#### 6. Subscribe to push notifications
 ```
 PushNotificationRegistrar pushNotificationRegistrar =  new PushNotification(requestListener);
 pushNotificationRegistrar.registerPushNotification(Context context, String userId, String accessToken);
 ```
-#### 9. Unsubscribe to push notifications
+#### 7. Unsubscribe to push notifications
 ```
 PushNotificationRegistrar pushNotificationRegistrar =  new PushNotification(requestListener);
 pushNotificationRegistrar.unsubscribePushNotification(Context context, String accessToken);
 ```
-#### 10. Disconnect
+#### 8. Disconnect
 ----
 //Invoke to disconnect previous socket connection upon closing Activity/Fragment or upon destroying view.
 botconnector.disconnect();
