@@ -80,7 +80,7 @@ public class BotChatActivity extends AppCompatActivity implements SocketConnecti
 
         botClient = new BotClient(this);
 
-        connectToWebSocketAnonymous();
+        connectToWebSocket();
     }
 
     @Override
@@ -92,6 +92,7 @@ public class BotChatActivity extends AppCompatActivity implements SocketConnecti
     private void getBundleInfo() {
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
+            //jwt token
             jwt = bundle.getString(BundleUtils.JWT_TOKEN,"");
         }
         chatBot = SDKConfiguration.Client.bot_name;
@@ -150,8 +151,9 @@ public class BotChatActivity extends AppCompatActivity implements SocketConnecti
         updateTitleBar(SocketConnectionEventStates.CONNECTING);
     }*/
 
-    private void connectToWebSocketAnonymous() {
-        botClient.connectAsAnonymousUser(jwt,SDKConfiguration.Client.client_id,chatBot,taskBotId, BotChatActivity.this);
+    // Here the connection to web socket is happening
+    private void connectToWebSocket() {
+        botClient.connect(jwt,SDKConfiguration.Client.client_id,chatBot,taskBotId, BotChatActivity.this);
         updateTitleBar(SocketConnectionEventStates.CONNECTING);
     }
 
@@ -172,6 +174,8 @@ public class BotChatActivity extends AppCompatActivity implements SocketConnecti
         }
     };
 
+    // Here is the socket listener implementations where you will get responses from server after
+    // the socket connection established
     @Override
     public void onOpen() {
         if (composeFooterUpdate != null) {
@@ -218,7 +222,6 @@ public class BotChatActivity extends AppCompatActivity implements SocketConnecti
 
     @Override
     public void onSendClick(String message) {
-
 
         botClient.sendMessage(message,chatBot,taskBotId);
 

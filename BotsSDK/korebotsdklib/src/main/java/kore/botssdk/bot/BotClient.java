@@ -37,25 +37,16 @@ public class BotClient {
         this.mContext = mContext.getApplicationContext();
     }
 
+
     /**
-     * Connection for authenticated user
-     *
-     * @param accessToken
-     * @param chatBot
+     * connecting to web socket here
+     * @param jwtToken
+     * @param clientId
+     * @param chatBotName
      * @param taskBotId
      * @param socketConnectionListener
      */
-    public void connectAsAuthenticatedUser(String accessToken, String chatBot, String taskBotId, SocketConnectionListener socketConnectionListener) {
-        SocketWrapper.getInstance(mContext).connect(accessToken, chatBot, taskBotId, socketConnectionListener);
-    }
-
-    /**
-     * Connection for anonymous user
-     *
-     * @param clientId
-     * @param socketConnectionListener
-     */
-    public void connectAsAnonymousUser(String jwtToken, String clientId, String chatBotName, String taskBotId, SocketConnectionListener socketConnectionListener) {
+    public void connect(String jwtToken, String clientId, String chatBotName, String taskBotId, SocketConnectionListener socketConnectionListener) {
         String uuid = UUID.randomUUID().toString();//"e56dd516-5491-45b2-9ff7-ffcb7d8f2461";
         SocketWrapper.getInstance(mContext).connectAnonymous(jwtToken, clientId, chatBotName, taskBotId, uuid, socketConnectionListener);
     }
@@ -87,8 +78,6 @@ public class BotClient {
     public void sendMessage(String msg, String chatBotName, String taskBotId) {
 
         if (msg != null && !msg.isEmpty()) {
-
-
 
             RestResponse.BotPayLoad botPayLoad = new RestResponse.BotPayLoad();
 
