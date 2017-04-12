@@ -35,7 +35,7 @@ Client id - Copy this id from Bot Builder SDK Settings ex. cs-5250bdc9-6bfe-5ece
 
 Client secret - copy this value from Bot Builder SDK Settings ex. Wibn3ULagYyq0J10LCndswYycHGLuIWbwHvTRSfLwhs=
  ```
-public static final String clientSecret = "<client-secret>";
+public static final String client_secret = "<client-secret>";
  ```
 
 User identity - rhis should represent the subject for JWT token that could be an email or phone number in case of known user. In case of anonymous user, this can be a randomly generated unique id.
@@ -45,12 +45,12 @@ public static final String identity = "<user@example.com>";
 
 Bot name - copy this value from Bot Builder -> Channels -> Web/Mobile SDK config  ex. "Demo Bot"
  ```
-public static final String chatBotName = "<bot-name>";
+public static final String bot_name = "<bot-name>";
  ```
 
 Bot Id - copy this value from Bot Builder -> Channels -> Web/Mobile SDK config  ex. st-acecd91f-b009-5f3f-9c15-7249186d827d
  ```
-public static final String botId = "<bot-id>"; 
+public static final String bot_id = "<bot-id>"; 
  ```
 
 Server URL - replace it with your server URL, if required
@@ -58,14 +58,9 @@ Server URL - replace it with your server URL, if required
 public static final String KORE_BOT_SERVER_URL = "https://bots.kore.com/";
  ```
 
-Anonymous user - if not anonymous, assign same identity (such as email or phone number) while making a connection
+Anonymous user - 
  ```
 public static final boolean IS_ANONYMOUS_USER = true; 
- ```
-
-Speech server URL
- ```
-public static final String SPEECH_SERVER_BASE_URL = "wss://speech.kore.ai/speechcntxt/ws/speech";
  ```
 
 JWT Server URL - specify the server URL for JWT token generation. This token is used to authorize the SDK client. Refer to documentation on how to setup the JWT server for token generation - e.g. https://jwt-token-server.example.com/
