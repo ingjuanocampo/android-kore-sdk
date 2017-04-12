@@ -99,29 +99,18 @@ SocketConnectionListener socketConnectionListener = new SocketConnectionListener
     }
 };
 ```
-#### 3. Initialize RTM client
-```
-botClient.connectAsAnonymousUser(jwt,
-            SDKConfiguration.Config.demo_client_id,chatBot,taskBotId, BotChatActivity.this);
 
-```
-#### 4. JWT genration
+#### 3. JWT genration
     a. You need to have secure token service hosted in your environment which returns the JWT token.
     b. Generate JWT in your enviornment.
 
 NOTE: Please refer about JWT signing and verification at - https://developer.kore.com/docs/bots/kore-web-sdk/
 
-#### 5. Connect with JWT
+#### 4. Connect with JWT
     private void getJWTToken(){
-        String id;
-        if(SDKConfiguration.Config.IS_ANONYMOUS_USER){
-            id = UUID.randomUUID().toString();
-        }else{
-            id = SDKConfiguration.Config.identity;
-        }
-
+        
         JWTGrantRequest request = new JWTGrantRequest(SDKConfiguration.Config.demo_client_id,
-                SDKConfiguration.Config.clientSecret, id,SDKConfiguration.Config.IS_ANONYMOUS_USER);
+                SDKConfiguration.Config.clientSecret,SDKConfiguration.Config.identity,SDKConfiguration.Config.IS_ANONYMOUS_USER);
         spiceManagerForJWT.execute(request, new RequestListener<RestResponse.JWTTokenResponse>() {
             @Override
             public void onRequestFailure(SpiceException e) {
@@ -130,8 +119,7 @@ NOTE: Please refer about JWT signing and verification at - https://developer.kor
 
             @Override
             public void onRequestSuccess(RestResponse.JWTTokenResponse jwt) {
-                botClient.connectAsAnonymousUser(jwt.getJwt(),
-                        SDKConfiguration.Config.demo_client_id,chatBot,taskBotId, BotChatActivity.this);
+                //Launch the Activity here where you want to chat with bot as shown in sample app 
             }
         });
     }
