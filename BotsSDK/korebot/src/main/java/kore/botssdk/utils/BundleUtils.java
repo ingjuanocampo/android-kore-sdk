@@ -8,6 +8,6 @@ public class BundleUtils {
 
     public static String BOT_NAME = "chatBot";
     public static String BOT_ID = "taskBotId";
-    public static String LOGIN_MODE = "loginMode";
     public static String SHOW_PROFILE_PIC = "showProfilePic";
+    public static String JWT_TOKEN = "jwtToken";
 }
