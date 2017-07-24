@@ -1,10 +1,7 @@
 package kore.botssdk.net;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Objects;
 
-import kore.botssdk.models.MarketStreams;
 import retrofit.client.Response;
 import retrofit.http.Body;
 import retrofit.http.GET;
@@ -26,7 +23,7 @@ public interface RestAPI {
     RestResponse.LoginResponse loginUser(@Body HashMap<String, Object> userCredentials);
 
     // Get JWT Token
-    @POST("/api/users/sts")
+    @POST("/users/sts")
     RestResponse.JWTTokenResponse getJWTToken(@Header("Authorization") String token);
 
     //Getting jwt grant

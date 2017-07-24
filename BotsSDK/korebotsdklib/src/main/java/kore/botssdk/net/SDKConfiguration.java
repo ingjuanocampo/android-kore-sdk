@@ -12,7 +12,7 @@ public class SDKConfiguration {
 
     //JWTServer related configurations
     public static class JWTServer{
-        public static final String JWT_SERVER_URL = "http://50.19.64.173:4000";
+        public static final String JWT_SERVER_URL = "http://demo.kore.net:3000";
     }
 
     //Server related configurations
