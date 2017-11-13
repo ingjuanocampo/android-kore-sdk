@@ -249,7 +249,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#341423"
+            android:background="#233842"
             android:gravity="center_vertical">
 
 

@@ -32,7 +32,7 @@
             android:id="@+id/quick_reply_item_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#01CDEF"
+            android:textColor="#233842"
             android:ellipsize="end"
             android:padding="5dp"
             android:maxLines="1"

@@ -52,7 +52,7 @@ public class QuickReplyFragment extends BaseSpiceFragment {
             txtQuickReply.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
             txtQuickReply.setLayoutParams(layoutParams);
             txtQuickReply.setPadding((int) dp1 * 12, (int) dp1 * 8, (int) dp1 * 12, (int) dp1 * 8);
-            txtQuickReply.setTextColor(Color.parseColor("#01CDEF"));
+            txtQuickReply.setTextColor(Color.parseColor("#233842"));
             txtQuickReply.setBackgroundResource(R.drawable.quick_reply_textbackground);
             txtQuickReply.setOnClickListener(new View.OnClickListener() {
                 @Override
