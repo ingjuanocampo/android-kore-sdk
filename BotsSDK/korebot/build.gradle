@@ -20,6 +20,9 @@ android {
     }
     productFlavors {
         asana {
+            applicationId 'kore.botssdk.asana'
+        }
+        tmb {
             applicationId 'kore.botssdk.tmb'
         }
         shopbot2{
