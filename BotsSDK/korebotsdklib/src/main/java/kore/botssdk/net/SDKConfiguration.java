@@ -14,6 +14,7 @@ public class SDKConfiguration {
      */
     public static final boolean TRIGGER_INIT_MESSAGE = true;
     public static final String INIT_MESSAGE = "Welpro";
+    public static final String BOT_ICON_URL = "http://demo.kore.net/tmb/images/MebotTyping.png";
     //JWTServer related configurations
     public static class JWTServer{
         public static final String JWT_SERVER_URL = "http://demo.kore.net:3000";

@@ -115,6 +115,7 @@ public class BotHomeActivity extends AppCompatActivity {
         bundle.putString(BundleUtils.JWT_TOKEN, jwt);
         bundle.putBoolean(BundleUtils.SHOW_PROFILE_PIC, false);
         bundle.putString(BundleUtils.BOT_NAME_INITIALS,SDKConfiguration.Client.bot_name.charAt(0)+"");
+        bundle.putString(BundleUtils.CHANNEL_ICON_URL,SDKConfiguration.BOT_ICON_URL);
         intent.putExtras(bundle);
 
         startActivity(intent);
