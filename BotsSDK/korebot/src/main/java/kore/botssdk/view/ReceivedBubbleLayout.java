@@ -294,10 +294,10 @@ public class ReceivedBubbleLayout extends BaseBubbleLayout {
         MeasureUtils.measure(botPieChartView, childWidthSpec,childHeightSpec);
 
         /**
-         * For TableView
+         * For TableViev
          */
         childWidthSpec = MeasureSpec.makeMeasureSpec((int) screenWidth - 50 * (int)dp1, MeasureSpec.EXACTLY);
-        childHeightSpec = MeasureSpec.makeMeasureSpec((int) (tableHeight), MeasureSpec.EXACTLY);
+        childHeightSpec = MeasureSpec.makeMeasureSpec(wrapSpec, MeasureSpec.EXACTLY);
         MeasureUtils.measure(tableView, childWidthSpec,childHeightSpec);
 
         /**

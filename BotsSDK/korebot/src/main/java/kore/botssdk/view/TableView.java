@@ -153,9 +153,14 @@ public class TableView extends ViewGroup {
          * For Pie View Layout
          */
         childWidthSpec = MeasureSpec.makeMeasureSpec(maxAllowedWidth, MeasureSpec.EXACTLY);
-        childHeightSpec = MeasureSpec.makeMeasureSpec((int) getResources().getDimension(R.dimen.pie_layout_height), MeasureSpec.UNSPECIFIED);
+        int childs = getChildCount();
+        int childHeight = 0;
+        for(int i= 0; i<childs;i++){
+            MeasureUtils.measure(getChildAt(i), childWidthSpec, wrapSpec);
+            childHeight+= getChildAt(i).getMeasuredHeight();
+        }
+        int parentHeightSpec = MeasureSpec.makeMeasureSpec(childHeight != 0 ? childHeight + (int)50 * dp1 : 0, MeasureSpec.AT_MOST);
 
-        MeasureUtils.measure(mTable, childWidthSpec, childHeightSpec);
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        super.onMeasure(widthMeasureSpec, parentHeightSpec);
     }
 }
