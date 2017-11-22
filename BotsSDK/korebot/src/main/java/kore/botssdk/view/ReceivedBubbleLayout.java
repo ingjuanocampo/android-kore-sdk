@@ -132,6 +132,7 @@ public class ReceivedBubbleLayout extends BaseBubbleLayout {
         botCarouselView.setVisibility(View.GONE);
         botListTemplateView.setVisibility(View.GONE);
         botPieChartView.setVisibility(View.GONE);
+        tableView.populateTableView(null);
         tableView.setVisibility(View.GONE);
         lineChartView.setVisibility(GONE);
     }
@@ -158,10 +159,14 @@ public class ReceivedBubbleLayout extends BaseBubbleLayout {
         // Default out everything
         botButtonView.populateButtonList(null);
         botListTemplateView.populateListTemplateView(null, null);
+        tableView.populateTableView(null);
 
         botListTemplateView.setVisibility(View.GONE);
         botCarouselView.setVisibility(View.GONE);
         botButtonView.setVisibility(View.GONE);
+        tableView.setVisibility(GONE);
+        lineChartView.setVisibility(GONE);
+        botPieChartView.setVisibility(GONE);
 
         if (compModel != null) {
             String compType = compModel.getType();
@@ -293,12 +298,13 @@ public class ReceivedBubbleLayout extends BaseBubbleLayout {
         childHeightSpec = MeasureSpec.makeMeasureSpec((int) (pieViewHeight), MeasureSpec.EXACTLY);
         MeasureUtils.measure(botPieChartView, childWidthSpec,childHeightSpec);
 
+
+
         /**
          * For TableViev
          */
-        childWidthSpec = MeasureSpec.makeMeasureSpec((int) screenWidth - 50 * (int)dp1, MeasureSpec.EXACTLY);
-        childHeightSpec = MeasureSpec.makeMeasureSpec(wrapSpec, MeasureSpec.EXACTLY);
-        MeasureUtils.measure(tableView, childWidthSpec,childHeightSpec);
+            childWidthSpec = MeasureSpec.makeMeasureSpec((int) screenWidth - 50 * (int) dp1, MeasureSpec.EXACTLY);
+            MeasureUtils.measure(tableView, childWidthSpec, wrapSpec);
 
         /**
          * for line chart
@@ -411,12 +417,13 @@ public class ReceivedBubbleLayout extends BaseBubbleLayout {
         top = cpvSenderImage.getBottom() + BUBBLE_CONTENT_BOTTOM_MARGIN;
         LayoutUtils.layoutChild(botPieChartView, left, top);
 
-        /**
-         * For Table view
-         */
-        left = cpvSenderImage.getRight() /2;
-        top = cpvSenderImage.getBottom() + BUBBLE_CONTENT_BOTTOM_MARGIN + 10;
-        LayoutUtils.layoutChild(tableView, left, top);
+
+            /**
+             * For Table view
+             */
+            left = cpvSenderImage.getRight() / 2;
+            top = cpvSenderImage.getBottom() + BUBBLE_CONTENT_BOTTOM_MARGIN + 10;
+            LayoutUtils.layoutChild(tableView, left, top);
 
         left = cpvSenderImage.getRight()/2;
         top = cpvSenderImage.getBottom() + BUBBLE_CONTENT_BOTTOM_MARGIN + 10;

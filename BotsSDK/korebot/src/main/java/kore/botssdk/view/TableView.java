@@ -39,12 +39,12 @@ public class TableView extends ViewGroup {
     }
 
     public void populateTableView(BotTableDataModel data){
+        mTable.removeAllViews();
         if(data != null){
 /*            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                     LayoutParams.WRAP_CONTENT,
                     LayoutParams.WRAP_CONTENT);
             layoutParams.setMargins(10,10,10,10);*/
-            mTable.removeAllViews();
             int size = data.getHeaders().size();
             int rowSize = data.getRows().size();
 
@@ -156,11 +156,12 @@ public class TableView extends ViewGroup {
         int childs = getChildCount();
         int childHeight = 0;
         for(int i= 0; i<childs;i++){
-            MeasureUtils.measure(getChildAt(i), childWidthSpec, wrapSpec);
-            childHeight+= getChildAt(i).getMeasuredHeight();
+                MeasureUtils.measure(getChildAt(i), childWidthSpec, wrapSpec);
+                childHeight += getChildAt(i).getMeasuredHeight();
         }
-        int parentHeightSpec = MeasureSpec.makeMeasureSpec(childHeight != 0 ? childHeight + (int)50 * dp1 : 0, MeasureSpec.AT_MOST);
+        int parentHeightSpec = MeasureSpec.makeMeasureSpec(childHeight != 0 ? childHeight + 20* dp1 : 0, MeasureSpec.EXACTLY);
 
         super.onMeasure(widthMeasureSpec, parentHeightSpec);
+
     }
 }
