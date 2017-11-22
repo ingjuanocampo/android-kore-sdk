@@ -31,7 +31,7 @@
 
     <!-- Pie View -->
     <dimen name="pie_layout_height">375dp</dimen>
-    <dimen name="table_layout_height">100dp</dimen>
+    <dimen name="table_layout_height">375dp</dimen>
 
     <!--Line chart View-->
     <dimen name="line_layout_height">300dp</dimen>
