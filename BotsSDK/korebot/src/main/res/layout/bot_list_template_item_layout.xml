@@ -60,5 +60,16 @@
         android:textColor="@android:color/holo_blue_dark"
         android:background="@drawable/rounded_image_bg_blue"
         android:textSize="12dp" />
+    <Button
+        android:id="@+id/bot_list_item_button1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@+id/bot_list_item_button"
+        android:visibility="gone"
+        android:layout_marginRight="10dp"
+        android:textColor="@android:color/holo_blue_dark"
+        android:background="@drawable/rounded_image_bg_blue"
+        android:textSize="12dp" />
 
 </RelativeLayout>

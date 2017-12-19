@@ -98,6 +98,7 @@ public class BotListTemplateAdapter extends BaseAdapter {
         holder.botListItemSubtitle.setText(botListModel.getSubtitle());
         if (botListModel.getButtons() == null || botListModel.getButtons().isEmpty()) {
             holder.botListItemButton.setVisibility(View.GONE);
+            holder.botListItemButton1.setVisibility(View.GONE);
         } else {
             holder.botListItemButton.setVisibility(View.VISIBLE);
             holder.botListItemButton.setText(botListModel.getButtons().get(0).getTitle());
@@ -118,6 +119,46 @@ public class BotListTemplateAdapter extends BaseAdapter {
                     }
                 }
             });
+
+            if(botListModel.getButtons().size() > 1){
+                holder.botListItemButton1.setVisibility(View.VISIBLE);
+                holder.botListItemButton1.setText(botListModel.getButtons().get(1).getTitle());
+                holder.botListItemButton1.setTag(botListModel.getButtons().get(1));
+
+                holder.botListItemButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (composeFooterInterface != null && invokeGenericWebViewInterface != null) {
+                            BotListElementButton botListElementButton = (BotListElementButton) v.getTag();
+                            if (BundleConstants.BUTTON_TYPE_WEB_URL.equalsIgnoreCase(botListElementButton.getType())) {
+                                invokeGenericWebViewInterface.invokeGenericWebView(botListElementButton.getUrl());
+                            } else if (BundleConstants.BUTTON_TYPE_POSTBACK.equalsIgnoreCase(botListElementButton.getType())) {
+                                String listElementButtonPayload = botListElementButton.getPayload();
+                                String listElementButtonTitle = botListElementButton.getTitle();
+                                composeFooterInterface.onSendClick(listElementButtonTitle, listElementButtonPayload);
+                            }
+                        }
+                    }
+                });
+                holder.botListItemButton1.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (composeFooterInterface != null && invokeGenericWebViewInterface != null) {
+                            BotListElementButton botListElementButton = (BotListElementButton) v.getTag();
+                            if (BundleConstants.BUTTON_TYPE_WEB_URL.equalsIgnoreCase(botListElementButton.getType())) {
+                                invokeGenericWebViewInterface.invokeGenericWebView(botListElementButton.getUrl());
+                            } else if (BundleConstants.BUTTON_TYPE_POSTBACK.equalsIgnoreCase(botListElementButton.getType())) {
+                                String listElementButtonPayload = botListElementButton.getPayload();
+                                String listElementButtonTitle = botListElementButton.getTitle();
+                                composeFooterInterface.onSendClick(listElementButtonTitle, listElementButtonPayload);
+                            }
+                        }
+                    }
+                });
+            }else{
+                holder.botListItemButton1.setVisibility(View.GONE);
+            }
+
         }
         holder.botListItemRoot.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -158,6 +199,7 @@ public class BotListTemplateAdapter extends BaseAdapter {
         holder.botListItemTitle = (TextView) view.findViewById(R.id.bot_list_item_title);
         holder.botListItemSubtitle = (TextView) view.findViewById(R.id.bot_list_item_subtitle);
         holder.botListItemButton = (Button) view.findViewById(R.id.bot_list_item_button);
+        holder.botListItemButton1 = (Button) view.findViewById(R.id.bot_list_item_button1);
 
         view.setTag(holder);
     }
@@ -168,5 +210,6 @@ public class BotListTemplateAdapter extends BaseAdapter {
         TextView botListItemTitle;
         TextView botListItemSubtitle;
         Button botListItemButton;
+        Button botListItemButton1;
     }
 }
