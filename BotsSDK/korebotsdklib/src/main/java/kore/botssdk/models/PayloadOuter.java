@@ -8,6 +8,7 @@ public class PayloadOuter {
     private String type;
     private PayloadInner payload;
     private String text;
+    private String speech_hint;
 
     public String getType() {
         return type;
@@ -19,5 +20,13 @@ public class PayloadOuter {
 
     public String getText() {
         return text;
+    }
+
+    public String getSpeech_hint() {
+        return speech_hint;
+    }
+
+    public void setSpeech_hint(String speech_hint) {
+        this.speech_hint = speech_hint;
     }
 }

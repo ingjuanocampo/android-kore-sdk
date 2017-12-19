@@ -14,6 +14,8 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Date;
 
 import kore.botssdk.R;
@@ -390,27 +392,31 @@ public class BotChatActivity extends AppCompatActivity implements SocketConnecti
             if (componentModel != null) {
                 String compType = componentModel.getType();
                 PayloadOuter payOuter = componentModel.getPayload();
-                if (BotResponse.COMPONENT_TYPE_TEXT.equalsIgnoreCase(compType) || payOuter.getType() == null) {
+                botResponseTextualFormat = payOuter !=null ?  payOuter.getSpeech_hint() : "";
+                if (StringUtils.isEmpty(botResponseTextualFormat) && (BotResponse.COMPONENT_TYPE_TEXT.equalsIgnoreCase(compType) || payOuter.getType() == null)) {
                     botResponseTextualFormat = payOuter.getText();
-                } else if (BotResponse.COMPONENT_TYPE_ERROR.equalsIgnoreCase(payOuter.getType())) {
+                } else if (StringUtils.isEmpty(botResponseTextualFormat)  && BotResponse.COMPONENT_TYPE_ERROR.equalsIgnoreCase(payOuter.getType())) {
                     botResponseTextualFormat = payOuter.getPayload().getText();
-                } else if (BotResponse.COMPONENT_TYPE_TEMPLATE.equalsIgnoreCase(payOuter.getType()) || BotResponse.COMPONENT_TYPE_MESSAGE.equalsIgnoreCase(payOuter.getType())) {
+                } else if (StringUtils.isEmpty(botResponseTextualFormat) && (BotResponse.COMPONENT_TYPE_TEMPLATE.equalsIgnoreCase(payOuter.getType()) || BotResponse.COMPONENT_TYPE_MESSAGE.equalsIgnoreCase(payOuter.getType()))) {
                     PayloadInner payInner;
                     if (payOuter.getText() != null && payOuter.getText().contains("&quot")) {
                         Gson gson = new Gson();
                         payOuter = gson.fromJson(payOuter.getText().replace("&quot;", "\""), PayloadOuter.class);
                     }
                     payInner = payOuter.getPayload();
-
-                    if (payInner.getSpeech_hint() != null) {
-                        botResponseTextualFormat = payInner.getSpeech_hint();
+                    if(payInner != null) {
+                        if (payInner.getSpeech_hint() != null) {
+                            botResponseTextualFormat = payInner.getSpeech_hint();
 //                        ttsSynthesizer.speak(botResponseTextualFormat);
-                    } else if (BotResponse.TEMPLATE_TYPE_BUTTON.equalsIgnoreCase(payInner.getTemplate_type())) {
-                        botResponseTextualFormat = payInner.getText();
-                    } else if (BotResponse.TEMPLATE_TYPE_QUICK_REPLIES.equalsIgnoreCase(payInner.getTemplate_type())) {
-                        botResponseTextualFormat = payInner.getText();
-                    } else if (BotResponse.TEMPLATE_TYPE_CAROUSEL.equalsIgnoreCase(payInner.getTemplate_type())) {
-                    } else if (BotResponse.TEMPLATE_TYPE_LIST.equalsIgnoreCase(payInner.getTemplate_type())) {
+                        } else if (BotResponse.TEMPLATE_TYPE_BUTTON.equalsIgnoreCase(payInner.getTemplate_type())) {
+                            botResponseTextualFormat = payInner.getText();
+                        } else if (BotResponse.TEMPLATE_TYPE_QUICK_REPLIES.equalsIgnoreCase(payInner.getTemplate_type())) {
+                            botResponseTextualFormat = payInner.getText();
+                        } else if (BotResponse.TEMPLATE_TYPE_CAROUSEL.equalsIgnoreCase(payInner.getTemplate_type())) {
+                            botResponseTextualFormat = payInner.getText();
+                        } else if (BotResponse.TEMPLATE_TYPE_LIST.equalsIgnoreCase(payInner.getTemplate_type())) {
+                            botResponseTextualFormat = payInner.getText();
+                        }
                     }
                 }
                 ttsSynthesizer.speak(botResponseTextualFormat.replaceAll("\\<.*?>",""),botClient.getAccessToken());
