@@ -2,8 +2,12 @@ package kore.botssdk.view.viewUtils;
 
 import android.content.Context;
 import android.support.v7.widget.CardView;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.StrikethroughSpan;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -18,6 +22,8 @@ import kore.botssdk.listener.InvokeGenericWebViewInterface;
 import kore.botssdk.models.BotCaourselButtonModel;
 import kore.botssdk.models.BotCarouselModel;
 import kore.botssdk.utils.BundleConstants;
+import kore.botssdk.utils.StringUtils;
+import kore.botssdk.utils.Utils;
 
 /**
  * Created by Pradeep Mahato on 19/7/17.
@@ -30,6 +36,9 @@ public class CarouselItemViewHelper {
         TextView carouselItemTitle, carouselItemSubTitle;
         ListView carouselButtonListview;
         CardView carouselItemRoot;
+
+        FrameLayout carouselOfferPrice_FL,carouselSavedPrice_FL;
+        TextView carousel_item_offer,carousel_item_save_price;
     }
 
     public static void initializeViewHolder(View view) {
@@ -40,6 +49,12 @@ public class CarouselItemViewHelper {
         carouselViewHolder.carouselItemTitle = (TextView) view.findViewById(R.id.carousel_item_title);
         carouselViewHolder.carouselItemSubTitle = (TextView) view.findViewById(R.id.carousel_item_subtitle);
         carouselViewHolder.carouselButtonListview = (ListView) view.findViewById(R.id.carousel_button_listview);
+
+        carouselViewHolder.carouselOfferPrice_FL =  (FrameLayout) view.findViewById(R.id.offer_price_fl);
+        carouselViewHolder.carouselSavedPrice_FL =  (FrameLayout) view.findViewById(R.id.saved_price_fl);
+
+        carouselViewHolder.carousel_item_offer = (TextView) view.findViewById(R.id.carousel_item_offer);
+        carouselViewHolder.carousel_item_save_price= (TextView) view.findViewById(R.id.carousel_item_saved);
 
         view.setTag(carouselViewHolder);
     }
@@ -58,6 +73,38 @@ public class CarouselItemViewHelper {
             carouselViewHolder.carouselItemSubTitle.setText(botCarouselModel.getSubtitle());
 
             Picasso.with(activityContext).load(botCarouselModel.getImage_url()).into(carouselViewHolder.carouselItemImage);
+
+            String price = Utils.isNullOrEmpty(botCarouselModel.getPrice())?"":botCarouselModel.getPrice();
+            String cost_price = Utils.isNullOrEmpty(botCarouselModel.getCost_price())?"":botCarouselModel.getCost_price();
+
+            String text = (price+" "+ cost_price).trim();
+
+            SpannableStringBuilder ssBuilder = new SpannableStringBuilder(text);
+
+            // Initialize a new StrikeThroughSpan to display strike through text
+            StrikethroughSpan strikethroughSpan = new StrikethroughSpan();
+
+            // Apply the strike through text to the span
+            ssBuilder.setSpan(
+                    strikethroughSpan, // Span to add
+                    text.indexOf(price), // Start of the span (inclusive)
+                    text.indexOf(price) + String.valueOf(price).length(), // End of the span (exclusive)
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE // Do not extend the span when text add later
+            );
+
+            if(!Utils.isNullOrEmpty(botCarouselModel.getPrice()) || !Utils.isNullOrEmpty(botCarouselModel.getCost_price())) {
+                carouselViewHolder.carouselOfferPrice_FL.setVisibility(View.VISIBLE);
+                carouselViewHolder.carousel_item_offer.setText(ssBuilder);
+            }else{
+                carouselViewHolder.carouselOfferPrice_FL.setVisibility(View.GONE);
+            }
+
+            if(!Utils.isNullOrEmpty(botCarouselModel.getSaved_price())) {
+                carouselViewHolder.carouselSavedPrice_FL.setVisibility(View.VISIBLE);
+                carouselViewHolder.carousel_item_save_price.setText(botCarouselModel.getSaved_price());
+            }else{
+                carouselViewHolder.carouselSavedPrice_FL.setVisibility(View.GONE);
+            }
 
             BotCarouselItemButtonAdapter botCarouselItemButtonAdapter = new BotCarouselItemButtonAdapter(activityContext);
             carouselViewHolder.carouselButtonListview.setAdapter(botCarouselItemButtonAdapter);

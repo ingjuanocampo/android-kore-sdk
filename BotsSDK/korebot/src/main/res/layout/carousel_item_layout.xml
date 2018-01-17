@@ -32,8 +32,59 @@
             <ImageView
                 android:id="@+id/carousel_item_image"
                 android:layout_width="match_parent"
-                android:layout_height="125dp"
+                android:layout_height="180dp"
                 android:scaleType="centerCrop" />
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignRight="@id/carousel_item_image"
+                android:id="@+id/offer_price_fl"
+                android:background="@drawable/offer_layout"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/carousel_item_offer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:ellipsize="end"
+                    android:gravity="center_horizontal"
+                    android:paddingBottom="2dp"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:paddingTop="2dp"
+                    android:textSize="10sp"
+                    android:visibility="visible"
+                    android:textColor="@color/bubbleFileName"
+                    android:textStyle="normal" />
+
+            </FrameLayout>
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/carousel_item_image"
+                android:id="@+id/saved_price_fl"
+                android:background="@drawable/save_layout"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/carousel_item_saved"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:ellipsize="end"
+                    android:gravity="center_horizontal"
+                    android:paddingBottom="2dp"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:paddingTop="2dp"
+                    android:textSize="10sp"
+                    android:visibility="visible"
+                    android:textColor="@color/white"
+                    android:textStyle="normal" />
+
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/carousel_item_title"
@@ -43,12 +94,9 @@
                 android:layout_gravity="top"
                 android:ellipsize="end"
                 android:layout_marginTop="10dp"
-                android:gravity="center_horizontal"
                 android:maxLines="1"
-                android:paddingBottom="5dp"
                 android:paddingLeft="7dp"
                 android:paddingRight="7dp"
-                android:paddingTop="5dp"
                 android:textColor="#233842"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -61,11 +109,10 @@
                 android:layout_below="@id/carousel_item_title"
                 android:layout_gravity="top"
                 android:ellipsize="end"
+                android:maxLines="1"
                 android:gravity="center_horizontal"
-                android:paddingBottom="5dp"
                 android:paddingLeft="7dp"
                 android:paddingRight="7dp"
-                android:paddingTop="5dp"
                 android:textColor="#233842"
                 android:textSize="12sp"
                 android:textStyle="normal" />
