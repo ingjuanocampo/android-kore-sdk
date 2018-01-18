@@ -422,6 +422,7 @@ public class BotChatActivity extends AppCompatActivity implements SocketConnecti
                         }
                     }
                 }
+                if(!Utils.isNullOrEmpty(botResponseTextualFormat))
                 ttsSynthesizer.speak(botResponseTextualFormat.replaceAll("\\<.*?>",""),botClient.getAccessToken());
             }
         }
