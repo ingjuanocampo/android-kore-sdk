@@ -17,9 +17,11 @@ public class DateUtils {
     public static final Format dateFormat4 = new SimpleDateFormat("d MMM yyyy 'at' h:mm a", Locale.ENGLISH);
 
     public static String getTimeStamp(String timeStamp, boolean timezoneModifiedRequired) throws ParseException {
+        if(timeStamp == null || timeStamp.isEmpty())return "";
         long timeStampMillis = isoFormatter.parse(timeStamp).getTime() + ((timezoneModifiedRequired) ? TimeZone.getDefault().getRawOffset() : 0);
         return getTimeStamp(timeStampMillis);
     }
+
 
     public static String getTimeStamp(long timeStampMillis) {
         return dateFormat4.format(new Date(timeStampMillis));

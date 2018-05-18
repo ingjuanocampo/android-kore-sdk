@@ -1,6 +1,7 @@
 package kore.botssdk.websocket;
 
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 
 import com.octo.android.robospice.persistence.exception.SpiceException;
@@ -9,15 +10,21 @@ import com.octo.android.robospice.request.listener.RequestListener;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import kore.botssdk.autobahn.WebSocket;
 import kore.botssdk.autobahn.WebSocketConnection;
 import kore.botssdk.autobahn.WebSocketException;
+import kore.botssdk.event.KoreEventCenter;
 import kore.botssdk.models.BotInfoModel;
+import kore.botssdk.models.CustomData;
 import kore.botssdk.net.BaseSpiceManager;
 import kore.botssdk.net.RestRequest;
 import kore.botssdk.net.RestResponse;
 import kore.botssdk.utils.Constants;
+import kore.botssdk.utils.Utils;
 
 /**
  * Created by Ramachandra Pradeep on 6/1/2016.
@@ -31,6 +38,8 @@ public final class SocketWrapper extends BaseSpiceManager {
     private SocketConnectionListener socketConnectionListener = null;
 
     private final WebSocketConnection mConnection = new WebSocketConnection();
+    private static Timer timer = new Timer();
+    private boolean mIsReconnectionAttemptNeeded = true;
 
     private String url;
     private URI uri;
@@ -38,13 +47,25 @@ public final class SocketWrapper extends BaseSpiceManager {
 
     private HashMap<String, Object> optParameterBotInfo;
     private String accessToken;
+    private String userAccessToken = null;
     private String clientId;
     private String JWTToken;
     private String uuId;
     private String chatBotName;
     private String taskBotId;
+    private String auth;
+    private String botUserId;
 
     private Context mContext;
+    /**
+     * initial reconnection delay 1 Sec
+     */
+    private int mReconnectDelay = 1000;
+
+    /**
+     * initial reconnection count
+     */
+    private int mReconnectionCount = 0;
 
     /**
      * Restricting outside object creation
@@ -52,6 +73,11 @@ public final class SocketWrapper extends BaseSpiceManager {
     private SocketWrapper(Context mContext) {
         start(mContext);
         this.mContext = mContext;
+        KoreEventCenter.register(this);
+    }
+
+    public String getAccessToken(){
+        return auth;
     }
 
     /**
@@ -91,6 +117,7 @@ public final class SocketWrapper extends BaseSpiceManager {
         this.socketConnectionListener = socketConnectionListener;
         this.accessToken = accessToken;
         optParameterBotInfo = new HashMap<>();
+//        mIsReconnectionAttemptNeeded = true;
 
         final String chatBotArg = (chatBotName == null) ? "" : chatBotName;
         final String taskBotIdArg = (taskBotId == null) ? "" : taskBotId;
@@ -114,6 +141,9 @@ public final class SocketWrapper extends BaseSpiceManager {
                 hsh.put(Constants.BOT_INFO, botInfoModel);
 
                 RestResponse.BotAuthorization jwtGrant = getService().jwtGrant(hsh);
+                auth = jwtGrant.getAuthorization().getAccessToken();
+                this.accessToken = jwtGrant.getAuthorization().getAccessToken();
+                botUserId = jwtGrant.getUserInfo().getUserId();
 
                 RestResponse.RTMUrl rtmUrl = getService().getRtmUrl(accessTokenHeader(jwtGrant.getAuthorization().getAccessToken()), optParameterBotInfo);
                 return rtmUrl;
@@ -138,16 +168,19 @@ public final class SocketWrapper extends BaseSpiceManager {
 
     }
 
+    public void ConnectAnonymousForKora(final String userAccessToken, final String sJwtGrant, final String clientId, final String chatBotName, final String taskBotId, final String uuId,SocketConnectionListener socketConnectionListener){
+        this.userAccessToken = userAccessToken;
+        connectAnonymous(sJwtGrant,clientId,chatBotName,taskBotId,uuId,socketConnectionListener);
+    }
+
     /**
      * Method to invoke connection for anonymous
      *
      * These keys are generated from bot admin console
      * @param clientId : generated clientId
-     * @param uuid : uuid associated with the specific client
-     * @param jwtGrant : jwt access token
+
      */
     public void connectAnonymous(final String sJwtGrant, final String clientId, final String chatBotName, final String taskBotId, final String uuId,SocketConnectionListener socketConnectionListener) {
-
         this.socketConnectionListener = socketConnectionListener;
         this.accessToken = null;
         this.clientId = clientId;
@@ -160,11 +193,10 @@ public final class SocketWrapper extends BaseSpiceManager {
         if (!isConnected()) {
             start(mContext);
         }
-
         RestRequest<RestResponse.RTMUrl> request = new RestRequest<RestResponse.RTMUrl>(RestResponse.RTMUrl.class, null, null) {
             @Override
             public RestResponse.RTMUrl loadDataFromNetwork() throws Exception {
-
+                setPriority(PRIORITY_HIGH);
                 HashMap<String, Object> hsh = new HashMap<>();
                 hsh.put(Constants.KEY_ASSERTION, sJwtGrant);
 
@@ -177,14 +209,14 @@ public final class SocketWrapper extends BaseSpiceManager {
                 HashMap<String, Object> hsh1 = new HashMap<>();
                 hsh1.put(Constants.BOT_INFO, botInfoModel);
 
-                String userId = jwtGrant.getUserInfo().getId();
+                botUserId = jwtGrant.getUserInfo().getUserId();
                 this.accessToken = jwtGrant.getAuthorization().getAccessToken();
+                auth = jwtGrant.getAuthorization().getAccessToken();
 
                 RestResponse.RTMUrl rtmUrl = getService().getRtmUrl(accessTokenHeader(jwtGrant.getAuthorization().getAccessToken()), hsh1);
                 return rtmUrl;
             }
         };
-
 
         getSpiceManager().execute(request, new RequestListener<RestResponse.RTMUrl>() {
             @Override
@@ -213,7 +245,6 @@ public final class SocketWrapper extends BaseSpiceManager {
         if (url != null) {
             this.url = url;
             this.uri = new URI(url);
-
             try {
                 mConnection.connect(uri, new WebSocket.WebSocketConnectionObserver() {
                     @Override
@@ -222,6 +253,9 @@ public final class SocketWrapper extends BaseSpiceManager {
                         if (socketConnectionListener != null) {
                             socketConnectionListener.onOpen();
                         }
+                        startSendingPong();
+                        mReconnectionCount = 1;
+                        mReconnectDelay = 1000;
                     }
 
                     @Override
@@ -230,14 +264,20 @@ public final class SocketWrapper extends BaseSpiceManager {
                         if (socketConnectionListener != null) {
                             socketConnectionListener.onClose(code, reason);
                         }
+                        if(timer != null){
+                            timer.cancel();
+                            timer = null;
+                        }
                         if (isConnected()) {
                             stop();
                         }
+                        if(Utils.isNetworkAvailable(mContext))
+                            reconnectAttempt();
                     }
 
                     @Override
                     public void onTextMessage(String payload) {
-                        Log.d(LOG_TAG, "onTextMessage payload :" + payload);
+//                        Log.d(LOG_TAG, "onTextMessage payload :" + payload);
                         if (socketConnectionListener != null) {
                             socketConnectionListener.onTextMessage(payload);
                         }
@@ -245,7 +285,7 @@ public final class SocketWrapper extends BaseSpiceManager {
 
                     @Override
                     public void onRawTextMessage(byte[] payload) {
-                        Log.d(LOG_TAG, "onRawTextMessage payload:" + payload);
+//                        Log.d(LOG_TAG, "onRawTextMessage payload:" + payload);
                         if (socketConnectionListener != null) {
                             socketConnectionListener.onRawTextMessage(payload);
                         }
@@ -253,7 +293,7 @@ public final class SocketWrapper extends BaseSpiceManager {
 
                     @Override
                     public void onBinaryMessage(byte[] payload) {
-                        Log.d(LOG_TAG, "onBinaryMessage payload: " + payload);
+//                        Log.d(LOG_TAG, "onBinaryMessage payload: " + payload);
                         if (socketConnectionListener != null) {
                             socketConnectionListener.onBinaryMessage(payload);
                         }
@@ -263,6 +303,27 @@ public final class SocketWrapper extends BaseSpiceManager {
                 e.printStackTrace();
             }
         }
+    }
+    private void startSendingPong(){
+        TimerTask tTask = new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    if (mConnection != null && mConnection.isConnected()) {
+                        mConnection.sendTextMessage("pong from the client");
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        };
+
+       try {
+           if(timer == null)timer = new Timer();
+           timer.scheduleAtFixedRate(tTask, 1000L, 30000L);
+       }catch(Exception e){
+           e.printStackTrace();
+       }
     }
 
     /**
@@ -311,7 +372,7 @@ public final class SocketWrapper extends BaseSpiceManager {
             @Override
             public void onRequestSuccess(RestResponse.RTMUrl response) {
                 try {
-                    connectToSocket(response.getUrl());
+                    connectToSocket(response.getUrl().concat("&isReconnect=true"));
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                 }
@@ -334,6 +395,7 @@ public final class SocketWrapper extends BaseSpiceManager {
         RestRequest<RestResponse.RTMUrl> request = new RestRequest<RestResponse.RTMUrl>(RestResponse.RTMUrl.class, null, null) {
             @Override
             public RestResponse.RTMUrl loadDataFromNetwork() throws Exception {
+
                 HashMap<String, Object> hsh = new HashMap<>();
                 hsh.put(Constants.KEY_ASSERTION, JWTToken);
 
@@ -346,9 +408,9 @@ public final class SocketWrapper extends BaseSpiceManager {
                 HashMap<String, Object> hsh1 = new HashMap<>();
                 hsh1.put(Constants.BOT_INFO, botInfoModel);
 
-                String userId = jwtGrant.getUserInfo().getId();
                 this.accessToken = jwtGrant.getAuthorization().getAccessToken();
-
+                auth = jwtGrant.getAuthorization().getAccessToken();
+                botUserId = jwtGrant.getUserInfo().getUserId();
                 RestResponse.RTMUrl rtmUrl = getService().getRtmUrl(accessTokenHeader(accessToken), hsh1, true);
                 return rtmUrl;
             }
@@ -364,12 +426,17 @@ public final class SocketWrapper extends BaseSpiceManager {
             @Override
             public void onRequestSuccess(RestResponse.RTMUrl response) {
                 try {
-                    connectToSocket(response.getUrl());
+                    connectToSocket(response.getUrl().concat("&isReconnect=true"));
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                 }
             }
         });
+    }
+
+    public void onEvent(String token){
+        JWTToken = token;
+        reconnect();
     }
 
     /**
@@ -381,17 +448,65 @@ public final class SocketWrapper extends BaseSpiceManager {
             mConnection.sendTextMessage(msg);
             return true;
         } else {
-            reconnect();
+            if(userAccessToken != null && socketConnectionListener != null){
+                socketConnectionListener.refreshJwtToken();
+            }else {
+                reconnect();
+            }
             Log.e(LOG_TAG, "Connection is not present. Reconnecting...");
             return false;
         }
     }
 
+   /*
+     * Method to Reconnection attempt based on incremental delay
+     *
+     * @reurn
+     */
+    private void reconnectAttempt() {
+//        mIsImmediateFetchActionNeeded = true;
+        mReconnectDelay = getReconnectDelay();
+        try {
+            final Handler _handler = new Handler();
+            Runnable r = new Runnable() {
+
+                @Override
+                public void run() {
+                    Log.d(LOG_TAG, "Entered into reconnection post delayed " + mReconnectDelay);
+                    if (mIsReconnectionAttemptNeeded && !isConnected()) {
+                        reconnect();
+//                        Toast.makeText(mContext,"SocketDisConnected",Toast.LENGTH_SHORT).show();
+                        mReconnectDelay = getReconnectDelay();
+                        _handler.postDelayed(this, mReconnectDelay);
+                        Log.d(LOG_TAG, "#### trying to reconnect");
+                    }
+
+                }
+            };
+            _handler.postDelayed(r, mReconnectDelay);
+        } catch (Exception e) {
+            Log.d(LOG_TAG, ":: The Exception is " + e.toString());
+        }
+    }
+
+    /**
+     * The reconnection attempt delay(incremental delay)
+     *
+     * @return
+     */
+    private int getReconnectDelay() {
+        mReconnectionCount++;
+        Log.d(LOG_TAG, "Reconnection count " + mReconnectionCount);
+        if (mReconnectionCount > 5) mReconnectionCount = 1;
+        Random rint = new Random();
+        return (rint.nextInt(5) + 1) * mReconnectionCount * 1000;
+    }
     /**
      * For disconnecting user's presence
      * Call this method when the user logged out
      */
     public void disConnect() {
+        mIsReconnectionAttemptNeeded = false;
         if (mConnection != null && mConnection.isConnected()) {
             try {
                 mConnection.disconnect();
@@ -427,4 +542,11 @@ public final class SocketWrapper extends BaseSpiceManager {
         }
     }
 
+    public String getBotUserId() {
+        return botUserId;
+    }
+
+    public void setBotUserId(String botUserId) {
+        this.botUserId = botUserId;
+    }
 }

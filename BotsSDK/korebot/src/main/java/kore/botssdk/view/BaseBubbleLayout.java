@@ -1,5 +1,7 @@
 package kore.botssdk.view;
 
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -9,17 +11,26 @@ import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.Arrays;
+import java.util.Collections;
+
 import kore.botssdk.R;
 import kore.botssdk.application.AppControl;
+import kore.botssdk.fragment.ComposeFooterFragment.ComposeFooterInterface;
+import kore.botssdk.listener.InvokeGenericWebViewInterface;
 import kore.botssdk.models.BaseBotMessage;
 import kore.botssdk.models.BotRequest;
 import kore.botssdk.models.BotResponse;
 import kore.botssdk.models.BotResponseMessage;
+import kore.botssdk.models.ComponentModel;
+import kore.botssdk.models.PayloadOuter;
 import kore.botssdk.view.viewUtils.BubbleViewUtil;
 
 /**
@@ -29,15 +40,21 @@ import kore.botssdk.view.viewUtils.BubbleViewUtil;
 public abstract class BaseBubbleLayout extends ViewGroup {
 
     Context context;
-    protected float dp1, dp4, dp10, dp14, dp283, dp81, dp91, dp100, dp6, dp13, dp15, dp21,
+    Activity activityContext;
+    ComposeFooterInterface composeFooterInterface;
+    InvokeGenericWebViewInterface invokeGenericWebViewInterface;
+    protected float dp1, dp2, dp4, dp10, dp14, dp283, dp81, dp91, dp100, dp6, dp13, dp15, dp21,
             dp28, dp33, dp44, dp50, dp106, dp160, dp253, dp226;
+    protected float screenWidth;
     protected int senderImageRadius, bubbleCornerRadius;
     private boolean leftSide;
     protected boolean isContinuousMessage = false;
     protected boolean isSeparatedClosely = false;
+    protected boolean doDrawBubbleBackground = true;
     protected boolean isGroupMessage = true;
     private Point triangleCoordA, triangleCoordB, triangleCoordC;
     private Point lineStart, lineEnd;
+    private int linkTextColor;
 
     protected int[] textMediaDimen;
     protected int[] maxBubbleDimen;
@@ -54,6 +71,7 @@ public abstract class BaseBubbleLayout extends ViewGroup {
     protected int BUBBLE_CONTENT_TOP_MARGIN = 0;
     protected int BUBBLE_CONTENT_RIGHT_MARGIN = 0;
     protected int BUBBLE_CONTENT_BOTTOM_MARGIN = 0;
+    protected int BUBBLE_CAROUSEL_BOTTOM_SHADE_MARGIN = 0;
     protected int BUBBLE_LEFT_PROFILE_PIC_MARGIN_LEFT = 0;
     protected int BUBBLE_LEFT_PROFILE_PIC_MARGIN_RIGHT = 0;
     protected int BUBBLE_TOP_BORDER = 0;
@@ -73,6 +91,7 @@ public abstract class BaseBubbleLayout extends ViewGroup {
     protected int RIGHT_COLOR_UNSELECTED = getResources().getColor(R.color.right_bubble_unselected);
     protected int LEFT_COLOR_SELECTED = getResources().getColor(R.color.left_bubble_selected);
     protected int LEFT_COLOR_UNSELECTED = getResources().getColor(R.color.left_bubble_unselected);
+    protected int BUBBLE_WHITE_COLOR = getResources().getColor(R.color.bubble_white_color);
     protected int POLICY_BUBBLE_COLOR = getResources().getColor(R.color.policy_bubble_color);
     protected int WHITE_COLOR = 0xffffffff;
     public static String NON_KORE_COLOR = "#AEBFC4";
@@ -80,6 +99,17 @@ public abstract class BaseBubbleLayout extends ViewGroup {
     protected TextMediaLayout bubbleTextMediaLayout;
     protected TextView botContentTextView;
     protected HeaderLayout headerLayout;
+    protected BotListTemplateView botListTemplateView;
+    protected BotButtonView botButtonView;
+    protected BotCarouselView botCarouselView;
+    protected PieChartView botPieChartView;
+//    protected CustomTableView tableView;
+    protected LineChartView lineChartView;
+    protected BarChartView barChartView;
+    protected StackedBarChatView stackedBarChatView;
+    protected BotMainTableView miniTableView;
+
+
     protected int position;
     protected int[] dimens;
     protected int textColor;
@@ -105,6 +135,7 @@ public abstract class BaseBubbleLayout extends ViewGroup {
         init();
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public BaseBubbleLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         this.context = getContext();
@@ -126,6 +157,7 @@ public abstract class BaseBubbleLayout extends ViewGroup {
                 && AppControl.getInstance().getDimensionUtil() != null) {
             dp1 = AppControl.getInstance().getDimensionUtil().dp1;
             dp4 = 4 * dp1;
+            dp2 = 2 * dp1;
             dp6 = 6 * dp1;
             dp10 = 10 * dp1;
             dp13 = 13 * dp1;
@@ -156,13 +188,16 @@ public abstract class BaseBubbleLayout extends ViewGroup {
             BUBBLE_ARROW_TOP_Y = 0;
             BUBBLE_ARROW_MIDDLE_Y = (int) (arrow_factor * BUBBLE_ARROW_WIDTH);
             BUBBLE_ARROW_END_Y = (int) (2 * arrow_factor * BUBBLE_ARROW_WIDTH);
+            screenWidth = AppControl.getInstance().getDimensionUtil().screenWidth;
         }
     }
 
     protected void setPaintColor(Paint paint) {
 
         if (isLeftSide()) {
-            if (isSelected()) {
+            if (!isDoDrawBubbleBackground()) {
+                paint.setColor(BUBBLE_WHITE_COLOR);
+            } else if (isSelected()) {
                 paint.setColor(LEFT_COLOR_SELECTED);
             } else {
                 paint.setColor(LEFT_COLOR_UNSELECTED);
@@ -177,18 +212,66 @@ public abstract class BaseBubbleLayout extends ViewGroup {
     }
 
 
+    abstract int getLinkTextColor();
     private void viewAddition() {
         ownLayoutInflater = LayoutInflater.from(context);
 
         // Bubble Text Media
-        bubbleTextMediaLayout = new TextMediaLayout(context);
-
+        bubbleTextMediaLayout = new TextMediaLayout(context,getLinkTextColor());
         bubbleTextMediaLayout.setId(TextMediaLayout.TEXT_MEDIA_LAYOUT_ID);
         bubbleTextMediaLayout.setRestrictedLayoutWidth(BubbleViewUtil.getBubbleContentWidth());
         bubbleTextMediaLayout.setRestrictedLayoutHeight(BubbleViewUtil.getBubbleContentHeight());
         bubbleTextMediaLayout.widthStyle = TextMediaLayout.WRAP_CONTENT;
         bubbleTextMediaLayout.gravity = textMediaLayoutGravity;
+      /*  bubbleTextMediaLayout.setLinkTextColor(getLinkTextColor());*/
         addView(bubbleTextMediaLayout);
+
+        botListTemplateView = new BotListTemplateView(getContext());
+        botListTemplateView.setId(TextMediaLayout.LIST_ID);
+        botListTemplateView.setVisibility(View.GONE);
+        addView(botListTemplateView);
+
+        botButtonView = new BotButtonView(getContext());
+        botButtonView.setId(TextMediaLayout.BUTTON_VIEW_ID);
+        botButtonView.setVisibility(View.GONE);
+        addView(botButtonView);
+
+
+        botCarouselView = new BotCarouselView(getContext());
+        botCarouselView.setComposeFooterInterface(composeFooterInterface);
+        botCarouselView.setVisibility(View.GONE);
+        botCarouselView.setId(TextMediaLayout.CAROUSEL_VIEW_ID);
+        addView(botCarouselView);
+
+        botPieChartView = new PieChartView(getContext());
+        botPieChartView.setVisibility(View.GONE);
+        botPieChartView.setId(TextMediaLayout.PIECHART_VIEW_ID);
+        addView(botPieChartView);
+
+        /*tableView = new CustomTableView(getContext());
+        tableView.setVisibility(View.GONE);
+        tableView.setId(TextMediaLayout.TABLE_VIEW_ID);
+        addView(tableView);*/
+
+        lineChartView = new LineChartView(getContext());
+        lineChartView.setVisibility(GONE);
+        lineChartView.setId(TextMediaLayout.LINECHART_VIEW_ID);
+        addView(lineChartView);
+
+        barChartView = new BarChartView(getContext());
+        barChartView.setVisibility(GONE);
+        barChartView.setId(TextMediaLayout.BARCHART_VIEW_ID);
+        addView(barChartView);
+
+        stackedBarChatView = new StackedBarChatView(getContext());
+        stackedBarChatView.setVisibility(GONE);
+        stackedBarChatView.setId(TextMediaLayout.STACK_BARCHAT_VIEW_ID);
+        addView(stackedBarChatView);
+
+        miniTableView = new BotMainTableView(getContext());
+        miniTableView.setVisibility(GONE);
+        miniTableView.setId(TextMediaLayout.MINI_TABLE_VIEW_ID);
+        addView(miniTableView);
 
     }
 
@@ -227,6 +310,7 @@ public abstract class BaseBubbleLayout extends ViewGroup {
     }
 
     abstract void initializeBubbleBorderPass1();
+
     abstract void initializeBubbleBorderPass2();
 
     @Override
@@ -267,10 +351,18 @@ public abstract class BaseBubbleLayout extends ViewGroup {
         Bitmap curveBitmap = formCurveBitmap(senderImageRadius, bubbleCornerRadius);
 
         int x = 0;
-        int y = bubbleTextMediaLayout.getBottom() + BUBBLE_CONTENT_BOTTOM_MARGIN + 2 - senderImageRadius;
+        int y = 0;
+        if (botButtonView.getMeasuredHeight() > 0) {
+            y = botButtonView.getBottom();
+        } else if (botListTemplateView.getMeasuredHeight() > 0) {
+            y = (int) (botListTemplateView.getBottom() + dp1);
+        } else {
+            y = bubbleTextMediaLayout.getBottom() + BUBBLE_CONTENT_BOTTOM_MARGIN;
+        }
+        y += 2 - senderImageRadius;
 
-        if(isLeftSide()) {
-            x = (int) (bubbleTextMediaLayout.getLeft() - BUBBLE_CONTENT_LEFT_MARGIN - 6 * dp1 - senderImageRadius + dp1/3);
+        if (isLeftSide()) {
+            x = (int) (bubbleTextMediaLayout.getLeft() - BUBBLE_CONTENT_LEFT_MARGIN - 6 * dp1 - senderImageRadius + dp1 / 3);
         } else {
             x = bubbleTextMediaLayout.getRight() + BUBBLE_CONTENT_RIGHT_MARGIN - senderImageRadius;
         }
@@ -294,10 +386,10 @@ public abstract class BaseBubbleLayout extends ViewGroup {
 
         curvePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         curvePaint.setColor(Color.WHITE);
-        if(isLeftSide()) {
-            curveCanvas.drawCircle(BUBBLE_LEFT_BORDER + 4 * dp1 - dp1/3, 0, channelImageRadius, curvePaint);
+        if (isLeftSide()) {
+            curveCanvas.drawCircle(BUBBLE_LEFT_BORDER + 4 * dp1 - dp1 / 3, 0, channelImageRadius, curvePaint);
         } else {
-            int circularCurveX = (int) ((isGroupMessage) ? channelImageRadius + bubbleRadius + 3 * dp1 : channelImageRadius + bubbleRadius + 3*dp1);
+            int circularCurveX = (int) ((isGroupMessage) ? channelImageRadius + bubbleRadius + 3 * dp1 : channelImageRadius + bubbleRadius + 3 * dp1);
             curveCanvas.drawCircle(circularCurveX, 0, channelImageRadius, curvePaint);
         }
 
@@ -310,8 +402,17 @@ public abstract class BaseBubbleLayout extends ViewGroup {
         int dimen[] = textMediaDimen;
         int rectLeft = bubbleTextMediaLayout.getLeft() - BUBBLE_CONTENT_LEFT_MARGIN;
         int rectTop = bubbleTextMediaLayout.getTop() - (BUBBLE_CONTENT_TOP_MARGIN);// + BUBBLE_FORWARD_LAYOUT_HEIGHT_CONSIDERATION_FOR_PAINT);
-        int rectBottom = bubbleTextMediaLayout.getBottom() + BUBBLE_CONTENT_BOTTOM_MARGIN;
-        int rectRight = bubbleTextMediaLayout.getRight() + BUBBLE_CONTENT_RIGHT_MARGIN;
+        int rectBottom = 0;
+        if (botButtonView.getMeasuredHeight() > 0) {
+            rectBottom = botButtonView.getBottom();
+        } else if (botListTemplateView.getMeasuredHeight() > 0) {
+            rectBottom = (int) (botListTemplateView.getBottom() + dp1);
+        } else {
+            rectBottom = bubbleTextMediaLayout.getBottom() + BUBBLE_CONTENT_BOTTOM_MARGIN;
+        }
+        int rectRight = Collections.max(Arrays.asList(bubbleTextMediaLayout.getRight() + BUBBLE_CONTENT_RIGHT_MARGIN,
+                botButtonView.getRight() + (int) dp1,
+                botListTemplateView.getRight() + (int) dp1));
 
         rect.set(rectLeft, rectTop, rectRight, rectBottom);
         canvas.drawRoundRect(rect, (float) (1.5 * dp10), (float) (1.5 * dp10), paint);
@@ -336,8 +437,11 @@ public abstract class BaseBubbleLayout extends ViewGroup {
 
         preCosmeticChanges();
 
+        ComponentModel componentModel = getComponentModel(baseBotMessage);
         // Bubble Text Media
-        populateBubbleTextMedia(position, baseBotMessage, constrictLayout, dimens);
+        populateBubbleTextMedia(position, baseBotMessage, componentModel, constrictLayout, dimens);
+        // Bubble Templates
+        populateForTemplates(position, componentModel);
 
         // Header Layout
         populateHeaderLayout(position, baseBotMessage);
@@ -347,7 +451,16 @@ public abstract class BaseBubbleLayout extends ViewGroup {
 
     }
 
+    private ComponentModel getComponentModel(BaseBotMessage baseBotMessage) {
+        ComponentModel compModel = null;
+        if (baseBotMessage instanceof BotResponse && !((BotResponse) baseBotMessage).getMessage().isEmpty()) {
+            compModel = ((BotResponse) baseBotMessage).getMessage().get(0).getComponent();
+        }
+        return compModel;
+    }
+
     protected void preCosmeticChanges() {
+        setDoDrawBubbleBackground(true);
         determineTextColor();
         textViewCosmeticChanges();
     }
@@ -374,19 +487,38 @@ public abstract class BaseBubbleLayout extends ViewGroup {
         }
     }
 
-    protected void populateBubbleTextMedia(int position, BaseBotMessage baseBotMessage, boolean constrictLayout, int... dimens) {
+    protected void populateForTemplates(int position, ComponentModel componentModel) {
+    }
+
+    protected void populateBubbleTextMedia(int position, BaseBotMessage baseBotMessage, ComponentModel componentModel, boolean constrictLayout, int... dimens) {
 
         String message = null;
+        String textColor = "#000000";
         if (baseBotMessage.isSend()) {
             message = ((BotRequest) baseBotMessage).getMessage().getBody();
         } else {
             BotResponseMessage msg = ((BotResponse) baseBotMessage).getTempMessage();
-            if(msg != null)
-                message = msg.getcInfo().getBody();
+            if (componentModel != null) {
+                String compType = componentModel.getType();
+                PayloadOuter payOuter = componentModel.getPayload();
+                if (BotResponse.COMPONENT_TYPE_TEXT.equalsIgnoreCase(compType)) {
+                    message = payOuter.getText();
+                } else if (BotResponse.COMPONENT_TYPE_ERROR.equalsIgnoreCase(payOuter.getType())) {
+                    message = payOuter.getPayload().getText();
+                    textColor = payOuter.getPayload().getColor();
+                    if (botContentTextView != null) {
+                        try {
+                            botContentTextView.setTextColor(Color.parseColor(textColor));
+                            botContentTextView.setText(message);
+                        } catch (IllegalArgumentException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
         }
 
-        if(message != null)
-            bubbleTextMediaLayout.startup(position, message, dimens);
+        bubbleTextMediaLayout.startup(position, message, dimens);
     }
 
     abstract protected void populateHeaderLayout(int position, BaseBotMessage baseBotMessage);
@@ -404,7 +536,7 @@ public abstract class BaseBubbleLayout extends ViewGroup {
      */
     protected void initializeBubbleContentDimen() {
         //STEP 1: Retrieve TextMedia Layout dimensional value... and also FooterLayoutDimentionalValue
-        textMediaDimen =  new int[]{bubbleTextMediaLayout.getMeasuredWidth(), bubbleTextMediaLayout.getMeasuredHeight()} ;//bubbleTextMediaLayout.getTextMediaLayoutDimens(bubbleMeta.getComponentMeta(), dimens);
+        textMediaDimen = new int[]{bubbleTextMediaLayout.getMeasuredWidth(), bubbleTextMediaLayout.getMeasuredHeight()};
 
         //STEP 2: Store additional informations required in further stage of UI rendering...
         maxBubbleDimen = new int[2];
@@ -463,4 +595,47 @@ public abstract class BaseBubbleLayout extends ViewGroup {
     public void setGroupMessage(boolean groupMessage) {
         isGroupMessage = groupMessage;
     }
+
+    public void setComposeFooterInterface(ComposeFooterInterface composeFooterInterface) {
+        this.composeFooterInterface = composeFooterInterface;
+        if (botCarouselView != null) {
+            botCarouselView.setComposeFooterInterface(composeFooterInterface);
+        }
+        if (botButtonView != null) {
+            botButtonView.setComposeFooterInterface(composeFooterInterface);
+        }
+        if (botListTemplateView != null) {
+            botListTemplateView.setComposeFooterInterface(composeFooterInterface);
+        }
+    }
+
+    public void setInvokeGenericWebViewInterface(InvokeGenericWebViewInterface invokeGenericWebViewInterface) {
+        this.invokeGenericWebViewInterface = invokeGenericWebViewInterface;
+        if (botCarouselView != null) {
+            botCarouselView.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
+        }
+        if (botButtonView != null) {
+            botButtonView.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
+        }
+        if (botListTemplateView != null) {
+            botListTemplateView.setInvokeGenericWebViewInterface(invokeGenericWebViewInterface);
+        }
+    }
+
+    public void setActivityContext(Activity activityContext) {
+        this.activityContext = activityContext;
+        if (botCarouselView != null) {
+            botCarouselView.setActivityContext(activityContext);
+        }
+    }
+
+    public boolean isDoDrawBubbleBackground() {
+        return doDrawBubbleBackground;
+    }
+
+    public void setDoDrawBubbleBackground(boolean doDrawBubbleBackground) {
+        this.doDrawBubbleBackground = doDrawBubbleBackground;
+    }
+
+
 }

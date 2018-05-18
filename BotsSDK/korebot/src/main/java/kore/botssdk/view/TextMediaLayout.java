@@ -1,7 +1,13 @@
 package kore.botssdk.view;
 
 import android.content.Context;
+import android.content.Intent;
 import android.text.Html;
+import android.text.SpannableStringBuilder;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.URLSpan;
+import android.text.util.Linkify;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -9,7 +15,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import kore.botssdk.R;
+import kore.botssdk.activity.GenericWebViewActivity;
 import kore.botssdk.application.AppControl;
+import kore.botssdk.utils.StringUtils;
+import kore.botssdk.utils.markdown.MarkdownImageTagHandler;
+import kore.botssdk.utils.markdown.MarkdownTagHandler;
+import kore.botssdk.utils.markdown.MarkdownUtil;
 import kore.botssdk.view.viewUtils.LayoutUtils;
 import kore.botssdk.view.viewUtils.MeasureUtils;
 
@@ -23,24 +34,45 @@ public class TextMediaLayout extends MediaLayout {
 
     public static final int TEXTVIEW_ID = 1980081;
     public static final int TEXT_MEDIA_LAYOUT_ID = 73733614;
+    public static final int CAROUSEL_VIEW_ID = 1980053;
+    public static final int LIST_ID = 1980045;
+    public static final int BUTTON_VIEW_ID = 1980098;
+    public static final int PIECHART_VIEW_ID = 19800123;
+    public static final int TABLE_VIEW_ID = 19800345;
+    public static final int LINECHART_VIEW_ID = 19800335;
+    public static final int BARCHART_VIEW_ID = 19800355;
+    public static final int STACK_BARCHAT_VIEW_ID = 19800375;
+    public static final int MINI_TABLE_VIEW_ID = 19800365;
 
     private float restrictedLayoutWidth, restrictedLayoutHeight;
 
     public static int GRAVITY_LEFT = 0;
     public static int GRAVITY_RIGHT = 1;
-    int gravity = 0;
+   public int gravity = 0;
 
     public static int MATCH_PARENT = 0;
     public static int WRAP_CONTENT = 1;
-    int widthStyle = 0;
+    public int widthStyle = 0;
 
     float dp1;
+    private Context mContext;
+    final String TEXT_COLOR = "#000000";
+    private int linkTextColor ;
+
+
 
     public TextMediaLayout(Context context) {
         super(context);
+        this.mContext = context;
         init();
     }
 
+    public TextMediaLayout(Context context,int linkTextColor) {
+        super(context);
+        this.mContext = context;
+        this.linkTextColor = linkTextColor;
+        init();
+    }
     private void init() {
 
         if (!isInEditMode()) {
@@ -49,7 +81,7 @@ public class TextMediaLayout extends MediaLayout {
 
         //Add a textView
         botContentTextView = new TextView(getContext());
-        botContentTextView.setLinkTextColor(getResources().getColor(R.color.mentionsAndHashTagColor));
+
 
         RelativeLayout.LayoutParams txtVwParams = new RelativeLayout.LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
@@ -59,13 +91,17 @@ public class TextMediaLayout extends MediaLayout {
         botContentTextView.setLayoutParams(txtVwParams);
         botContentTextView.setSingleLine(false);
         botContentTextView.setClickable(false);
+        botContentTextView.setAutoLinkMask(Linkify.ALL);
         botContentTextView.setId(TEXTVIEW_ID);
         float dp5 = dp1 * 5;
         botContentTextView.setPadding(0, 0, 0, (int) dp5);
+        botContentTextView.setLinkTextColor(linkTextColor);
         if (gravity == GRAVITY_LEFT) {
             botContentTextView.setGravity(Gravity.LEFT);
+
         } else if (gravity == GRAVITY_RIGHT) {
             botContentTextView.setGravity(Gravity.RIGHT);
+
         }
         botContentTextView.setFocusable(false);
         botContentTextView.setClickable(false);
@@ -78,8 +114,40 @@ public class TextMediaLayout extends MediaLayout {
         populateText(messageBody);
     }
 
-    private void populateText(String textualContent) {
-        botContentTextView.setText(Html.fromHtml(textualContent.replace("\n","<br />")));
+    public void populateText(String textualContent) {
+        if (textualContent != null) {
+            textualContent = StringUtils.unescapeHtml3(textualContent.trim());
+            textualContent = MarkdownUtil.processMarkDown(textualContent);
+            CharSequence sequence = Html.fromHtml(textualContent.replace("\n", "<br />"),
+                    new MarkdownImageTagHandler(mContext, botContentTextView, textualContent), new MarkdownTagHandler());
+            SpannableStringBuilder strBuilder = new SpannableStringBuilder(sequence);
+            URLSpan[] urls = strBuilder.getSpans(0, sequence.length(), URLSpan.class);
+            for (URLSpan span : urls) {
+                makeLinkClickable(strBuilder, span);
+            }
+            botContentTextView.setText(strBuilder);
+            botContentTextView.setMovementMethod(LinkMovementMethod.getInstance());
+            botContentTextView.setVisibility(VISIBLE);
+        } else {
+            botContentTextView.setText("");
+            botContentTextView.setVisibility(GONE);
+        }
+    }
+
+    protected void makeLinkClickable(SpannableStringBuilder strBuilder, final URLSpan span) {
+        int start = strBuilder.getSpanStart(span);
+        int end = strBuilder.getSpanEnd(span);
+        int flags = strBuilder.getSpanFlags(span);
+        ClickableSpan clickable = new ClickableSpan() {
+            public void onClick(View view) {
+                Intent intent = new Intent(getContext(), GenericWebViewActivity.class);
+                intent.putExtra("url", span.getURL());
+                intent.putExtra("header", getResources().getString(R.string.app_name));
+                getContext().startActivity(intent);
+            }
+        };
+        strBuilder.setSpan(clickable, start, end, flags);
+        strBuilder.removeSpan(span);
     }
 
     public TextView getBotContentTextView() {
@@ -159,5 +227,13 @@ public class TextMediaLayout extends MediaLayout {
                 childTop += child.getMeasuredHeight();
             }
         }
+    }
+
+    public int getLinkTextColor() {
+        return linkTextColor;
+    }
+
+    public void setLinkTextColor(int linkTextColor) {
+        this.linkTextColor = linkTextColor;
     }
 }

@@ -35,7 +35,7 @@ Client id - Copy this id from Bot Builder SDK Settings ex. cs-5250bdc9-6bfe-5ece
 
 Client secret - copy this value from Bot Builder SDK Settings ex. Wibn3ULagYyq0J10LCndswYycHGLuIWbwHvTRSfLwhs=
  ```
-public static final String client_secret = "<client-secret>";
+public static final String clientSecret = "<client-secret>";
  ```
 
 User identity - rhis should represent the subject for JWT token that could be an email or phone number in case of known user. In case of anonymous user, this can be a randomly generated unique id.
@@ -45,12 +45,12 @@ public static final String identity = "<user@example.com>";
 
 Bot name - copy this value from Bot Builder -> Channels -> Web/Mobile SDK config  ex. "Demo Bot"
  ```
-public static final String bot_name = "<bot-name>";
+public static final String chatBotName = "<bot-name>";
  ```
 
 Bot Id - copy this value from Bot Builder -> Channels -> Web/Mobile SDK config  ex. st-acecd91f-b009-5f3f-9c15-7249186d827d
  ```
-public static final String bot_id = "<bot-id>"; 
+public static final String botId = "<bot-id>";
  ```
 
 Server URL - replace it with your server URL, if required
@@ -58,9 +58,14 @@ Server URL - replace it with your server URL, if required
 public static final String KORE_BOT_SERVER_URL = "https://bots.kore.com/";
  ```
 
-Anonymous user - 
+Anonymous user - if not anonymous, assign same identity (such as email or phone number) while making a connection
  ```
 public static final boolean IS_ANONYMOUS_USER = true; 
+ ```
+
+Speech server URL
+ ```
+public static final String SPEECH_SERVER_BASE_URL = "wss://speech.kore.ai/speechcntxt/ws/speech";
  ```
 
 JWT Server URL - specify the server URL for JWT token generation. This token is used to authorize the SDK client. Refer to documentation on how to setup the JWT server for token generation - e.g. https://jwt-token-server.example.com/
@@ -79,19 +84,49 @@ public static final String JWT_SERVER_URL = "<jwt-token-server-url>";
 ```
 BotClient botClient = new BotClient(this);
 ```
+#### 2. Implement SocketConnectionListener to receive callback
+```
+SocketConnectionListener socketConnectionListener = new SocketConnectionListener() {
+    @Override
+    public void onOpen() {
+    }
+    @Override
+    public void onClose(WebSocket.WebSocketConnectionObserver.WebSocketCloseNotification code, String reason) {
+    }
+    @Override
+    public void onTextMessage(String payload) {
+    }
+    @Override
+    public void onRawTextMessage(byte[] payload) {
+    }
+    @Override
+    public void onBinaryMessage(byte[] payload) {
+    }
+};
+```
+#### 3. Initialize RTM client
+```
+botClient.connectAsAnonymousUser(jwt,
+            SDKConfiguration.Config.demo_client_id,chatBot,taskBotId, BotChatActivity.this);
 
-#### 2. JWT genration
+```
+#### 4. JWT genration
     a. You need to have secure token service hosted in your environment which returns the JWT token.
     b. Generate JWT in your enviornment.
 
 NOTE: Please refer about JWT signing and verification at - https://developer.kore.com/docs/bots/kore-web-sdk/
 
-#### 3. Connect with JWT
-```
+#### 5. Connect with JWT
     private void getJWTToken(){
-        
+        String id;
+        if(SDKConfiguration.Config.IS_ANONYMOUS_USER){
+            id = UUID.randomUUID().toString();
+        }else{
+            id = SDKConfiguration.Config.identity;
+        }
+
         JWTGrantRequest request = new JWTGrantRequest(SDKConfiguration.Config.demo_client_id,
-                SDKConfiguration.Config.clientSecret,SDKConfiguration.Config.identity,SDKConfiguration.Config.IS_ANONYMOUS_USER);
+                SDKConfiguration.Config.clientSecret, id,SDKConfiguration.Config.IS_ANONYMOUS_USER);
         spiceManagerForJWT.execute(request, new RequestListener<RestResponse.JWTTokenResponse>() {
             @Override
             public void onRequestFailure(SpiceException e) {
@@ -100,17 +135,17 @@ NOTE: Please refer about JWT signing and verification at - https://developer.kor
 
             @Override
             public void onRequestSuccess(RestResponse.JWTTokenResponse jwt) {
-                //Launch the Activity here where you want to chat with bot as shown in sample app 
+                botClient.connectAsAnonymousUser(jwt.getJwt(),
+                        SDKConfiguration.Config.demo_client_id,chatBot,taskBotId, BotChatActivity.this);
             }
         });
     }
-```
 
-#### 4. Send message
+#### 6. Send message
 ```
 botClient.sendMessage("Tweet hello")
 ```
-#### 5. Listen to events in socketConnectionListener
+#### 7. Listen to events in socketConnectionListener
 ```
 @Override
 public void onOpen() {
@@ -129,17 +164,17 @@ public void onBinaryMessage(byte[] payload) {
 }
 ```
 
-#### 6. Subscribe to push notifications
+#### 8. Subscribe to push notifications
 ```
 PushNotificationRegistrar pushNotificationRegistrar =  new PushNotification(requestListener);
 pushNotificationRegistrar.registerPushNotification(Context context, String userId, String accessToken);
 ```
-#### 7. Unsubscribe to push notifications
+#### 9. Unsubscribe to push notifications
 ```
 PushNotificationRegistrar pushNotificationRegistrar =  new PushNotification(requestListener);
 pushNotificationRegistrar.unsubscribePushNotification(Context context, String accessToken);
 ```
-#### 8. Disconnect
+#### 10. Disconnect
 ----
 //Invoke to disconnect previous socket connection upon closing Activity/Fragment or upon destroying view.
 botconnector.disconnect();

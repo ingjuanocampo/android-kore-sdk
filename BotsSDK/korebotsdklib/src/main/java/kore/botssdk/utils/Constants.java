@@ -17,4 +17,16 @@ public class Constants {
 
     public static String UNSECURE_WEBSOCKET_PREFIX = "ws://";
     public static String SECURE_WEBSOCKET_PREFIX = "wss://";
+
+    public static boolean ENABLE_SDK = false;
+
+    public static String HTTP_AGENT = null;
+
+    public static String getUserAgent(){
+        if(HTTP_AGENT == null){
+            HTTP_AGENT = System.getProperty("http.agent");
+        }
+        return HTTP_AGENT;
+    }
+    public static final String delim = " \n\r\t,;";
 }
