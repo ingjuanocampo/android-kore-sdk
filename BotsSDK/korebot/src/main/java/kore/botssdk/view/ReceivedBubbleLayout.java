@@ -31,7 +31,7 @@ import kore.botssdk.view.viewUtils.MeasureUtils;
 public class ReceivedBubbleLayout extends BaseBubbleLayout {
 
     CircularProfileView cpvSenderImage;
-    int carouselViewHeight, pieViewHeight,tableHeight,lineHeight,miniTableHeight;
+    int carouselViewHeight, pieViewHeight,tableHeight,lineHeight,miniTableHeight, barChartHeight;
 
     public ReceivedBubbleLayout(Context context) {
         super(context);
@@ -63,6 +63,7 @@ public class ReceivedBubbleLayout extends BaseBubbleLayout {
         tableHeight = (int) getResources().getDimension(R.dimen.table_layout_height);
         lineHeight = (int) getResources().getDimension(R.dimen.line_layout_height);
         miniTableHeight = (int) getResources().getDimension(R.dimen.mini_table_layout_height);
+        barChartHeight = (int) getResources().getDimension(R.dimen.bar_chart_height);
         super.setLeftSide(true);
     }
 
@@ -351,14 +352,14 @@ public class ReceivedBubbleLayout extends BaseBubbleLayout {
          * For BarChart
          */
         childWidthSpec = MeasureSpec.makeMeasureSpec((int) screenWidth - 50 * (int)dp1, MeasureSpec.EXACTLY);
-        childHeightSpec = MeasureSpec.makeMeasureSpec((int) (pieViewHeight), MeasureSpec.EXACTLY);
+        childHeightSpec = MeasureSpec.makeMeasureSpec((int) (barChartHeight), MeasureSpec.EXACTLY);
         MeasureUtils.measure(barChartView, childWidthSpec,childHeightSpec);
 
         /**
          * For stacked BarChart
          */
         childWidthSpec = MeasureSpec.makeMeasureSpec((int) screenWidth - 50 * (int)dp1, MeasureSpec.EXACTLY);
-        childHeightSpec = MeasureSpec.makeMeasureSpec((int) (pieViewHeight), MeasureSpec.EXACTLY);
+        childHeightSpec = MeasureSpec.makeMeasureSpec((int) (barChartHeight), MeasureSpec.EXACTLY);
         MeasureUtils.measure(stackedBarChatView, childWidthSpec,childHeightSpec);
 
         /*
