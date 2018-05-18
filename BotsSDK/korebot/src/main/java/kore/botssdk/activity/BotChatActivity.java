@@ -154,8 +154,8 @@ public class BotChatActivity extends BotAppCompactActivity implements SocketConn
                 taskProgressBar.setVisibility(View.VISIBLE);
                 break;
             case CONNECTED:
-                if(isItFirstConnect)
-                    botClient.sendMessage("welcomedialog",chatBot,taskBotId);
+//                if(isItFirstConnect)
+//                    botClient.sendMessage("welcomedialog",chatBot,taskBotId);
                 titleMsg = getString(R.string.socket_connected);
                 taskProgressBar.setVisibility(View.GONE);
                 updateActionBar();
