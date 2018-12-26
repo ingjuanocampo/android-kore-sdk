@@ -41,11 +41,13 @@ import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.utils.BundleUtils;
 import kore.botssdk.utils.CustomToast;
 import kore.botssdk.utils.DateUtils;
+import kore.botssdk.utils.NetworkUtility;
 import kore.botssdk.utils.SocketConnectionEventStates;
 import kore.botssdk.utils.StringConstants;
 import kore.botssdk.utils.TTSSynthesizer;
 import kore.botssdk.utils.Utils;
 import kore.botssdk.websocket.SocketConnectionListener;
+import kore.botssdk.websocket.SocketWrapper;
 
 /**
  * Created by Pradeep Mahato on 31-May-16.
@@ -114,7 +116,6 @@ public class BotChatActivity extends BotAppCompactActivity implements SocketConn
         ttsSynthesizer = new TTSSynthesizer(this);
         setupTextToSpeech();
 
-        connectToWebSocketAnonymous();
 
     }
 
@@ -122,6 +123,12 @@ public class BotChatActivity extends BotAppCompactActivity implements SocketConn
     protected void onDestroy() {
         botClient.disconnect();
         super.onDestroy();
+    }
+
+    @Override
+    protected void onResume() {
+        checkAndConnectToWebSocketAnonymous();
+        super.onResume();
     }
 
     private void getBundleInfo() {
@@ -190,9 +197,17 @@ public class BotChatActivity extends BotAppCompactActivity implements SocketConn
         botContentFragment.setTtsUpdate(BotChatActivity.this);
     }
 
-    private void connectToWebSocketAnonymous() {
-        botClient.connectAsAnonymousUser(jwt, SDKConfiguration.Client.client_id, chatBot, taskBotId, BotChatActivity.this);
-        updateTitleBar(SocketConnectionEventStates.CONNECTING);
+    private void checkAndConnectToWebSocketAnonymous() {
+        if(botClient == null){
+            botClient = new BotClient(this);
+        }
+        if(!SocketWrapper.getInstance(this).isConnected() && NetworkUtility.isNetworkConnectionAvailable(BotChatActivity.this)){
+            botClient.connectAsAnonymousUser(jwt, SDKConfiguration.Client.client_id, chatBot, taskBotId, BotChatActivity.this);
+            updateTitleBar(SocketConnectionEventStates.CONNECTING);
+        }else if(SocketWrapper.getInstance(this).isConnected()) {
+            updateTitleBar(SocketConnectionEventStates.CONNECTED);
+        }
+
     }
 
 
