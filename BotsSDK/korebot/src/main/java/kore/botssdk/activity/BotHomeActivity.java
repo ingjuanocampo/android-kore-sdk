@@ -94,7 +94,7 @@ public class BotHomeActivity extends BotAppCompactActivity {
     private void getJWTToken(){
         JWTGrantRequest request = new JWTGrantRequest(SDKConfiguration.Client.client_id,
                 SDKConfiguration.Client.client_secret,SDKConfiguration.Server.IS_ANONYMOUS_USER? UUID.randomUUID().toString():SDKConfiguration.Client.identity,SDKConfiguration.Server.IS_ANONYMOUS_USER);
-        spiceManagerForJWT.execute(request, new RequestListener<RestResponse.JWTTokenResponse>() {
+        /*spiceManagerForJWT.execute(request, new RequestListener<RestResponse.JWTTokenResponse>() {
             @Override
             public void onRequestFailure(SpiceException e) {
                 dismissProgress();
@@ -106,7 +106,12 @@ public class BotHomeActivity extends BotAppCompactActivity {
                 dismissProgress();
                 launchBotChatActivity(jwt.getJwt());
             }
-        });
+        });*/
+        String jwt = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJodHRwczovL2lkcHJveHkua29yZS5haS9hdXRob3JpemUiLCJzdWIiOiJhbnlyYW5kb21zdHJpbmciLCJpc0Fub255bW91cyI6ZmFsc2UsImlzcyI6ImNzLTliMGE3MTIwLTM3OWUtNTc5My1iYTE3LWZmZGQ1ZGNkODg4YSIsImV4cCI6OTk5OTk5OTk5OSwiaWF0IjoxNTQ1ODMyOTc5fQ.EhhCJZVnqS_ZlTnRm6-crmiUItAbsW8TXB8VNDOpzO8";
+        dismissProgress();
+
+        launchBotChatActivity(jwt);
+
     }
 
     /**
