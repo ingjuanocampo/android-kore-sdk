@@ -1,8 +1,9 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
         applicationId "kore.botssdk"
@@ -18,31 +19,24 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    productFlavors {
-        asana {
-            applicationId 'kore.botssdk.asana'
-        }
-        shopbot2{
-            applicationId 'kore.botssdk.shopbot2'
-        }
-        sales_ot{
-            applicationId 'kore.botssdk.salesot'
-        }
-    }
 }
 
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile(project(':korebotsdklib'))
-    compile 'com.android.support:multidex:1.0.1'
-    compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'com.makeramen:roundedimageview:2.2.0'
-    compile 'com.google.code.gson:gson:2.6.2'
-    compile 'com.pixplicity.multiviewpager:library:1.0'
-    compile 'com.android.support:cardview-v7:21.+'
-    compile 'com.android.support:recyclerview-v7:21.+'
-    compile 'net.gotev:speech:1.3.1'
+    api fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementation 'junit:junit:4.12'
+    api 'com.android.support:appcompat-v7:23.2.0'
+    api(project(':korebotsdklib'))
+    api 'com.android.support:multidex:1.0.1'
+    api 'com.squareup.picasso:picasso:2.5.2'
+    api 'com.makeramen:roundedimageview:2.2.0'
+    api 'com.google.code.gson:gson:2.6.2'
+    api 'com.pixplicity.multiviewpager:library:1.0'
+    api 'com.android.support:cardview-v7:21.+'
+    api 'com.android.support:recyclerview-v7:21.+'
+    api 'net.gotev:speech:1.3.1'
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+}
+repositories {
+    mavenCentral()
 }

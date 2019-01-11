@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
         minSdkVersion 15
@@ -20,15 +20,15 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.2.0'
-    compile 'com.squareup.retrofit:retrofit:1.9.0'
-    compile 'de.greenrobot:eventbus:2.4.0'
-    compile files('libs/robospice-1.4.12.jar')
-    compile files('libs/robospice-cache-1.4.12.jar')
-    compile files('libs/robospice-retrofit-1.4.12.jar')
-    compile files('libs/jackson-core-asl-1.9.7.jar')
-    compile files('libs/commons-lang3-3.2.1.jar')
-    compile files('libs/MPAndroidChart-v3.0.1.jar');
+    api fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementation 'junit:junit:4.12'
+    implementation 'com.android.support:appcompat-v7:23.2.0'
+    api 'com.squareup.retrofit:retrofit:1.9.0'
+    api 'de.greenrobot:eventbus:2.4.0'
+    api files('libs/robospice-1.4.12.jar')
+    api files('libs/robospice-cache-1.4.12.jar')
+    api files('libs/robospice-retrofit-1.4.12.jar')
+    api files('libs/jackson-core-asl-1.9.7.jar')
+    api files('libs/commons-lang3-3.2.1.jar')
+    api files('libs/MPAndroidChart-v3.0.1.jar')
 }
