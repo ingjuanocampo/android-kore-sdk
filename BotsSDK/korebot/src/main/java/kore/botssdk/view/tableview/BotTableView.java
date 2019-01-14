@@ -65,11 +65,11 @@ public class BotTableView extends TableView<MiniTableModel> {
                 alignment[i] = new String(defaultAlign);
         }
         final SimpleTableHeaderAdapter simpleTableHeaderAdapter = new SimpleTableHeaderAdapter(context, headers,alignment);
-        simpleTableHeaderAdapter.setTextColor(ContextCompat.getColor(context, R.color.primaryDark));
+        simpleTableHeaderAdapter.setTextColor(getContext().getColor(R.color.primaryDark));
         setHeaderAdapter(simpleTableHeaderAdapter);
 
-        final int rowColorEven = ContextCompat.getColor(context, R.color.table_data_row_even);
-        final int rowColorOdd = ContextCompat.getColor(context, R.color.table_data_row_odd);
+        final int rowColorEven = getContext().getColor(R.color.table_data_row_even);
+        final int rowColorOdd = getContext().getColor(R.color.table_data_row_odd);
         setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(rowColorEven, rowColorEven));
 //        setHeaderSortStateViewProvider(SortStateViewProviders.brightArrows());
 

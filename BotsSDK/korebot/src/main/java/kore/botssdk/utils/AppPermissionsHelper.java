@@ -7,9 +7,11 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
+
+import static android.support.v4.app.ActivityCompat.requestPermissions;
+import static android.support.v4.app.ActivityCompat.shouldShowRequestPermissionRationale;
+import static android.support.v4.content.PermissionChecker.checkSelfPermission;
+
 
 /**
  * Created by Ramachandra on 03/12/16.
@@ -17,11 +19,11 @@ import android.support.v4.content.ContextCompat;
 public class AppPermissionsHelper {
 
     public static void requestForPermission(Activity activity, String permission, int requestCode) {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
-            ActivityCompat.requestPermissions(activity, new String[]{permission},
+        if (shouldShowRequestPermissionRationale(activity, permission)) {
+            requestPermissions(activity, new String[]{permission},
                     requestCode);
         } else {
-            ActivityCompat.requestPermissions(activity, new String[]{permission},
+            requestPermissions(activity, new String[]{permission},
                     requestCode);
         }
     }
@@ -31,7 +33,7 @@ public class AppPermissionsHelper {
             int permissionLength = permission.length;
             for (int i=0;i<permissionLength;i++) {
                 shouldShowRequestPermissionRationale = shouldShowRequestPermissionRationale &&
-                        ContextCompat.checkSelfPermission(context, permission[i]) == PackageManager.PERMISSION_GRANTED;
+                        checkSelfPermission(context, permission[i]) == PackageManager.PERMISSION_GRANTED;
             }
         }
         return shouldShowRequestPermissionRationale;
@@ -46,10 +48,10 @@ public class AppPermissionsHelper {
         boolean shouldShowRequestPermissionRationale = shouldShowRationale(activity, permission);
 
         if (shouldShowRequestPermissionRationale) {
-            ActivityCompat.requestPermissions(activity, permission,
+            requestPermissions(activity, permission,
                     requestCode);
         } else {
-            ActivityCompat.requestPermissions(activity, permission,
+            requestPermissions(activity, permission,
                     requestCode);
         }
     }
@@ -58,56 +60,22 @@ public class AppPermissionsHelper {
         boolean shouldShowRequestPermissionRationale = false;
         int permissionLength = permission.length;
         for (int i=0;i<permissionLength;i++) {
-            shouldShowRequestPermissionRationale = shouldShowRequestPermissionRationale || ActivityCompat.shouldShowRequestPermissionRationale(activity, permission[i]);
+            shouldShowRequestPermissionRationale = shouldShowRequestPermissionRationale || shouldShowRequestPermissionRationale(activity, permission[i]);
         }
         return shouldShowRequestPermissionRationale;
     }
 
     public static void requestForPermission(Activity activity, String permission[], int requestCode) {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission[0])) {
-            ActivityCompat.requestPermissions(activity, permission,
+        if (shouldShowRequestPermissionRationale(activity, permission[0])) {
+            requestPermissions(activity, permission,
                     requestCode);
         } else {
-            ActivityCompat.requestPermissions(activity, permission,
+            requestPermissions(activity, permission,
                     requestCode);
         }
     }
 
-    public static void requestForPermission(Fragment fragment, String permission, int requestCode) {
-        //TODO: check for all permissions shouldShowRequestPermissionRationale
-        if (fragment.shouldShowRequestPermissionRationale(permission)) {
-            //TODO: need to show a dialog with a message to the user why should he grant permission
-            //call the below method on click OK of the dialog. For now if, else block code remains same
-            fragment.requestPermissions(new String[]{permission},
-                    requestCode);
-        } else {
-            fragment.requestPermissions(new String[]{permission},
-                    requestCode);
-        }
-    }
 
-    public static void requestForPermission(Fragment fragment, String[] permissions, int requestCode) {
-        //TODO: check for all permissions shouldShowRequestPermissionRationale
-        if (fragment.shouldShowRequestPermissionRationale(permissions[0])) {
-            //TODO: need to show a dialog with a message to the user why should he grant permission
-            //call the below method on click OK of the dialog. For now if, else block code remains same
-            fragment.requestPermissions(permissions,
-                    requestCode);
-
-        } else {
-            fragment.requestPermissions(permissions,
-                    requestCode);
-        }
-    }
-
-    public static boolean shouldShowRationale(Fragment fragment, String... permission) {
-        boolean shouldShowRequestPermissionRationale = false;
-        int permissionLength = permission.length;
-        for (int i=0;i<permissionLength;i++) {
-            shouldShowRequestPermissionRationale = shouldShowRequestPermissionRationale || fragment.shouldShowRequestPermissionRationale(permission[i]);
-        }
-        return shouldShowRequestPermissionRationale;
-    }
 
     public static void startInstalledAppDetailsActivity(final Activity activity) {
         if (activity == null) {

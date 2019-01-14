@@ -52,6 +52,7 @@ import kore.botssdk.utils.Utility;
 import static android.app.Activity.RESULT_OK;
 import static android.speech.RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS;
 import static android.speech.RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS;
+import static android.support.v4.content.ContextCompat.checkSelfPermission;
 
 /**
  * Copyright (c) 2014 Kore Inc. All rights reserved.
@@ -126,11 +127,11 @@ public class ComposeFooterFragment extends BaseSpiceFragment implements ComposeF
 
         progress = (SpeechProgressView) view.findViewById(R.id.progress);
         int[] colors = {
-                ContextCompat.getColor(getContext(), android.R.color.black),
-                ContextCompat.getColor(getContext(), android.R.color.darker_gray),
-                ContextCompat.getColor(getContext(), android.R.color.black),
-                ContextCompat.getColor(getContext(), android.R.color.holo_orange_dark),
-                ContextCompat.getColor(getContext(), android.R.color.holo_red_dark)
+                getActivity().getColor(android.R.color.black),
+                getActivity().getColor(android.R.color.darker_gray),
+                getActivity().getColor(android.R.color.black),
+                getActivity().getColor(android.R.color.holo_orange_dark),
+                getActivity().getColor(android.R.color.holo_red_dark)
         };
         progress.setColors(colors);
 
@@ -437,7 +438,7 @@ public class ComposeFooterFragment extends BaseSpiceFragment implements ComposeF
             Speech.getInstance().stopListening();
         } else {
             if (Build.VERSION.SDK_INT >= 23) {
-                if (ContextCompat.checkSelfPermission(getActivity(), android.Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                if (checkSelfPermission(getActivity(), android.Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
 //                editTextMessage.setHint("Start talking...");
                     onRecordAudioPermissionGranted();
 
