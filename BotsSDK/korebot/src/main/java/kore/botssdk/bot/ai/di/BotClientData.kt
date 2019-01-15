@@ -1,4 +1,4 @@
-package kore.botssdk.kore.ai.di
+package kore.botssdk.bot.ai.di
 
 data class BotClientData(val clientId: String,
                          val clientSecret: String,

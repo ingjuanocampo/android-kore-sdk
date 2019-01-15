@@ -1,10 +1,11 @@
 package kore.botssdk.activity;
 
+import android.arch.lifecycle.Observer;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -17,9 +18,11 @@ import com.google.gson.JsonSyntaxException;
 import java.util.Date;
 import java.util.HashMap;
 
+import javax.inject.Inject;
+
 import kore.botssdk.R;
-import kore.botssdk.autobahn.WebSocket;
-import kore.botssdk.bot.BotClient;
+import kore.botssdk.application.BotApplication;
+import kore.botssdk.bot.ai.di.IBotManager;
 import kore.botssdk.fragment.BotContentFragment;
 import kore.botssdk.fragment.CarouselFragment;
 import kore.botssdk.fragment.ComposeFooterFragment;
@@ -41,19 +44,20 @@ import kore.botssdk.net.SDKConfiguration;
 import kore.botssdk.utils.BundleUtils;
 import kore.botssdk.utils.CustomToast;
 import kore.botssdk.utils.DateUtils;
-import kore.botssdk.utils.NetworkUtility;
 import kore.botssdk.utils.SocketConnectionEventStates;
 import kore.botssdk.utils.StringConstants;
 import kore.botssdk.utils.TTSSynthesizer;
 import kore.botssdk.utils.Utils;
-import kore.botssdk.websocket.SocketConnectionListener;
-import kore.botssdk.websocket.SocketWrapper;
+import kotlin.Pair;
+
+import static kore.botssdk.bot.ai.kore.KoreManager.CONNECTED;
+import static kore.botssdk.bot.ai.kore.KoreManager.CONNECTING;
 
 /**
  * Created by Pradeep Mahato on 31-May-16.
  * Copyright (c) 2014 Kore Inc. All rights reserved.
  */
-public class BotChatActivity extends BotAppCompactActivity implements SocketConnectionListener, ComposeFooterFragment.ComposeFooterInterface, QuickReplyFragment.QuickReplyInterface, TTSUpdate, InvokeGenericWebViewInterface {
+public class BotChatActivity extends BotAppCompactActivity implements ComposeFooterFragment.ComposeFooterInterface, QuickReplyFragment.QuickReplyInterface, TTSUpdate, InvokeGenericWebViewInterface {
 
     String LOG_TAG = BotChatActivity.class.getSimpleName();
 
@@ -68,7 +72,6 @@ public class BotChatActivity extends BotAppCompactActivity implements SocketConn
 
     Handler actionBarTitleUpdateHandler;
 
-    BotClient botClient;
     BotContentFragment botContentFragment;
     CarouselFragment carouselFragment;
     ComposeFooterFragment composeFooterFragment;
@@ -78,6 +81,9 @@ public class BotChatActivity extends BotAppCompactActivity implements SocketConn
     BotContentFragmentUpdate botContentFragmentUpdate;
     ComposeFooterUpdate composeFooterUpdate;
     boolean isItFirstConnect = true;
+
+    @Inject
+    IBotManager botManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,9 +116,10 @@ public class BotChatActivity extends BotAppCompactActivity implements SocketConn
         fragmentTransaction.add(R.id.chatLayoutFooterContainer, composeFooterFragment).commit();
         setComposeFooterUpdate(composeFooterFragment);
 
+        ((BotApplication) getApplication()).getBotComponent().inject(this);
+
         updateTitleBar();
 
-        botClient = new BotClient(this);
         ttsSynthesizer = new TTSSynthesizer(this);
         setupTextToSpeech();
 
@@ -121,7 +128,7 @@ public class BotChatActivity extends BotAppCompactActivity implements SocketConn
 
     @Override
     protected void onDestroy() {
-        botClient.disconnect();
+        botManager.disconnect();
         super.onDestroy();
     }
 
@@ -198,18 +205,37 @@ public class BotChatActivity extends BotAppCompactActivity implements SocketConn
     }
 
     private void checkAndConnectToWebSocketAnonymous() {
-        if(botClient == null){
-            botClient = new BotClient(this);
-        }
-        if(!SocketWrapper.getInstance(this).isConnected() && NetworkUtility.isNetworkConnectionAvailable(BotChatActivity.this)){
-            botClient.connectAsAnonymousUser(jwt, SDKConfiguration.Client.client_id, chatBot, taskBotId, BotChatActivity.this);
-            updateTitleBar(SocketConnectionEventStates.CONNECTING);
-        }else if(SocketWrapper.getInstance(this).isConnected()) {
-            updateTitleBar(SocketConnectionEventStates.CONNECTED);
-        }
+
+        botManager.connect();
+        botManager.getConnectionStatusObserver().observe(this, new Observer<Pair<String, String>>() {
+            @Override
+            public void onChanged(@Nullable Pair<String, String> stringStringPair) {
+                Log.e("botManager", stringStringPair.getFirst() + " :" + stringStringPair.getSecond());
+                if (stringStringPair.getFirst().equals(CONNECTED)) {
+                    composeFooterUpdate.enableSendButton();
+                    updateTitleBar(SocketConnectionEventStates.CONNECTED);
+                    botManager.sendMessage("");
+
+                } else if (stringStringPair.getFirst().equals(CONNECTING)) {
+                    updateTitleBar(SocketConnectionEventStates.CONNECTING);
+                } else {
+                    updateTitleBar(SocketConnectionEventStates.DISCONNECTED);
+                }
+
+            }
+        });
+
+        botManager.getTextMessageObserver().observe(this, new Observer<Object>() {
+            @Override
+            public void onChanged(@Nullable Object payload) {
+                if (payload instanceof String) {
+                    processPayload((String) payload);
+
+                }
+            }
+        });
 
     }
-
 
 
     private void updateActionBar() {
@@ -237,7 +263,7 @@ public class BotChatActivity extends BotAppCompactActivity implements SocketConn
         super.onPause();
     }
 
-    @Override
+    /*@Override
     public void onOpen() {
         if (composeFooterUpdate != null) {
             composeFooterUpdate.enableSendButton();
@@ -286,7 +312,7 @@ public class BotChatActivity extends BotAppCompactActivity implements SocketConn
     @Override
     public void onBinaryMessage(byte[] payload) {
 
-    }
+    }*/
 
     @Override
     public void onSendClick(String message) {
@@ -297,7 +323,7 @@ public class BotChatActivity extends BotAppCompactActivity implements SocketConn
     @Override
     public void onSendClick(String message, String payload) {
         stopTextToSpeech();
-        botClient.sendMessage(payload, chatBot, taskBotId);
+        botManager.sendMessage(payload);
 
         if (botContentFragmentUpdate != null) {
             //Update the bot content list with the send message
@@ -388,7 +414,7 @@ public class BotChatActivity extends BotAppCompactActivity implements SocketConn
     }
 
     @Override
-    public void handleUserActions(String action, HashMap<String,Object > payload) {
+    public void handleUserActions(String action, HashMap<String, Object> payload) {
 
 
     }
@@ -415,7 +441,7 @@ public class BotChatActivity extends BotAppCompactActivity implements SocketConn
     private void stopTextToSpeech() {
         try {
             ttsSynthesizer.stopTextToSpeech();
-        }catch (IllegalArgumentException exception){
+        } catch (IllegalArgumentException exception) {
             exception.printStackTrace();
         }
     }
@@ -443,27 +469,26 @@ public class BotChatActivity extends BotAppCompactActivity implements SocketConn
                     if (payInner.getSpeech_hint() != null) {
                         botResponseTextualFormat = payInner.getSpeech_hint();
 //                        ttsSynthesizer.speak(botResponseTextualFormat);
-                        } else if (BotResponse.TEMPLATE_TYPE_BUTTON.equalsIgnoreCase(payInner.getTemplate_type())) {
-                            botResponseTextualFormat = payInner.getText();
-                        } else if (BotResponse.TEMPLATE_TYPE_QUICK_REPLIES.equalsIgnoreCase(payInner.getTemplate_type())) {
-                            botResponseTextualFormat = payInner.getText();
-                        } else if (BotResponse.TEMPLATE_TYPE_CAROUSEL.equalsIgnoreCase(payInner.getTemplate_type())) {
-                            botResponseTextualFormat = payInner.getText();
-                        } else if (BotResponse.TEMPLATE_TYPE_CAROUSEL_ADV.equalsIgnoreCase(payInner.getTemplate_type())) {
-                            botResponseTextualFormat = payInner.getText();
-                        }
-                        else if (BotResponse.TEMPLATE_TYPE_LIST.equalsIgnoreCase(payInner.getTemplate_type())) {
-                            botResponseTextualFormat = payInner.getText();
-                        }
+                    } else if (BotResponse.TEMPLATE_TYPE_BUTTON.equalsIgnoreCase(payInner.getTemplate_type())) {
+                        botResponseTextualFormat = payInner.getText();
+                    } else if (BotResponse.TEMPLATE_TYPE_QUICK_REPLIES.equalsIgnoreCase(payInner.getTemplate_type())) {
+                        botResponseTextualFormat = payInner.getText();
+                    } else if (BotResponse.TEMPLATE_TYPE_CAROUSEL.equalsIgnoreCase(payInner.getTemplate_type())) {
+                        botResponseTextualFormat = payInner.getText();
+                    } else if (BotResponse.TEMPLATE_TYPE_CAROUSEL_ADV.equalsIgnoreCase(payInner.getTemplate_type())) {
+                        botResponseTextualFormat = payInner.getText();
+                    } else if (BotResponse.TEMPLATE_TYPE_LIST.equalsIgnoreCase(payInner.getTemplate_type())) {
+                        botResponseTextualFormat = payInner.getText();
                     }
                 }
-                if(!Utils.isNullOrEmpty(botResponseTextualFormat))
-                ttsSynthesizer.speak(botResponseTextualFormat.replaceAll("\\<.*?>",""),botClient.getAccessToken());
             }
+            if (!Utils.isNullOrEmpty(botResponseTextualFormat))
+                ttsSynthesizer.speak(botResponseTextualFormat.replaceAll("\\<.*?>", ""), botManager.getAccessToken());
         }
+    }
 
 
-    private void toggleQuickRepliesVisiblity(boolean visible){
+    private void toggleQuickRepliesVisiblity(boolean visible) {
         if (visible) {
             quickReplyFragment.toggleQuickReplyContainer(View.VISIBLE);
         } else {

@@ -9,6 +9,8 @@ import android.speech.tts.TextToSpeech;
 import android.util.Base64;
 import android.util.Log;
 
+import com.octo.android.robospice.persistence.exception.SpiceException;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -140,6 +142,11 @@ public class TTSSynthesizer {
         @Override
         public void onClose(WebSocket.WebSocketConnectionObserver.WebSocketCloseNotification code, String reason) {
             Log.d(LOG_TAG, "Connection closed reason " + reason);
+        }
+
+        @Override
+        public void onConnectionError(SpiceException e) {
+
         }
 
         @Override

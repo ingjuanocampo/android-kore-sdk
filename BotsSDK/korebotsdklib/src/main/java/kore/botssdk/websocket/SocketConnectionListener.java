@@ -1,5 +1,7 @@
 package kore.botssdk.websocket;
 
+import com.octo.android.robospice.persistence.exception.SpiceException;
+
 import kore.botssdk.autobahn.WebSocket;
 
 /**
@@ -23,6 +25,12 @@ public interface SocketConnectionListener {
      */
     public void onClose(WebSocket.WebSocketConnectionObserver.WebSocketCloseNotification code, String reason);
 
+    /**
+     * Fired when a connection attempts fails
+     *
+     * @param e Exception
+     */
+    public void onConnectionError(SpiceException e);
     /**
      * Fired when a text message has been received (and text
      * messages are not set to be received raw).

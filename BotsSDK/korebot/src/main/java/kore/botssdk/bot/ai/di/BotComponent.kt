@@ -1,9 +1,9 @@
-package kore.botssdk.kore.ai.di
+package kore.botssdk.bot.ai.di
 
 import android.app.Application
 import dagger.Component
 import kore.botssdk.activity.BotChatActivity
-import kore.botssdk.kore.ai.KoreSdkManager
+import kore.botssdk.bot.ai.kore.KoreSdkModule
 import javax.inject.Singleton
 
 @Singleton
@@ -12,7 +12,7 @@ interface BotComponent {
 
     fun provideApplication(): Application
 
-    fun provideKoreSdkManager(): KoreSdkManager
+    fun provideIBotManager(): IBotManager
 
     fun inject(activity: BotChatActivity)
 

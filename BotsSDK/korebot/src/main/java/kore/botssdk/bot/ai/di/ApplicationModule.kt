@@ -1,4 +1,4 @@
-package kore.botssdk.kore.ai.di
+package kore.botssdk.bot.ai.di
 
 import android.app.Application
 import android.content.Context

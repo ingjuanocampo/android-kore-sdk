@@ -14,6 +14,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.octo.android.robospice.persistence.exception.SpiceException;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -144,6 +146,11 @@ public class TapToSpeakFragment extends Fragment {
             Log.d(LOG_TAG, "Connection closed reason " + reason);
             mRecordingThread.stop();
             sbf.delete(0, sbf.length());
+        }
+
+        @Override
+        public void onConnectionError(SpiceException e) {
+
         }
 
         @Override

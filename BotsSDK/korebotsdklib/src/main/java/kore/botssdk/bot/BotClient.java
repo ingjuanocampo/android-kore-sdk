@@ -95,8 +95,9 @@ public class BotClient {
      *
      * @param msg
      */
-    public void sendMessage(String msg, String chatBotName, String taskBotId) {
+    public boolean sendMessage(String msg, String chatBotName, String taskBotId) {
 
+        boolean wasSuccessfullySend = false;
         if (msg != null && !msg.isEmpty()) {
 
             RestResponse.BotPayLoad botPayLoad = new RestResponse.BotPayLoad();
@@ -125,7 +126,7 @@ public class BotClient {
                 int len = botRequestStringArrayList.size();
                 for (int i = 0; i < len; i++) {
                     String botRequestPayload = botRequestStringArrayList.get(i);
-                    boolean wasSuccessfullySend = SocketWrapper.getInstance(mContext).sendMessage(botRequestPayload);
+                    wasSuccessfullySend = SocketWrapper.getInstance(mContext).sendMessage(botRequestPayload);
                     if (wasSuccessfullySend) {
                         BotRequestPool.getBotRequestStringArrayList().remove(botRequestPayload);
                         i--; //reset the parameter
@@ -136,6 +137,7 @@ public class BotClient {
                 }
             }
         }
+        return  wasSuccessfullySend;
     }
 
     public void sendFormData(String payLoad, String chatBotName, String taskBotId,String message) {

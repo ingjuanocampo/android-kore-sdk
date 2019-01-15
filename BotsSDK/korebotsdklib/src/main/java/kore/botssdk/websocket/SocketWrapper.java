@@ -180,7 +180,7 @@ public final class SocketWrapper extends BaseSpiceManager {
      * @param clientId : generated clientId
 
      */
-    public void connectAnonymous(final String sJwtGrant, final String clientId, final String chatBotName, final String taskBotId, final String uuId,SocketConnectionListener socketConnectionListener) {
+    public void connectAnonymous(final String sJwtGrant, final String clientId, final String chatBotName, final String taskBotId, final String uuId, final SocketConnectionListener socketConnectionListener) {
         this.socketConnectionListener = socketConnectionListener;
         this.accessToken = null;
         this.clientId = clientId;
@@ -222,6 +222,7 @@ public final class SocketWrapper extends BaseSpiceManager {
             @Override
             public void onRequestFailure(SpiceException e) {
                 Log.e(LOG_TAG, e.getMessage());
+                socketConnectionListener.onConnectionError(e);
             }
 
             @Override

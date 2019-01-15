@@ -73,16 +73,15 @@ public class BotHomeActivity extends BotAppCompactActivity {
      * START of : Listeners
      */
 
+
+
     View.OnClickListener launchBotBtnOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
 
-            if (isOnline()) {
+
                 showProgress("",true);
                 getJWTToken();
-            } else {
-                Toast.makeText(BotHomeActivity.this, "No internet connectivity", Toast.LENGTH_SHORT).show();
-            }
         }
     };
 
